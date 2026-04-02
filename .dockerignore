@@ -1,0 +1,9 @@
+node_modules
+dist
+prisma/src/generated
+.env
+words.json
+npm-debug.log
+coverage
+.git
+

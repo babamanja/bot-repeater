@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Language {
+  id            Int            @id @default(autoincrement()) @map("id")
+  name          String         @unique @map("name")
+  vocabWords    VocabWord[]   @relation("LanguageVocabWords")
+  primaryUsers  TelegramUser[] @relation("PrimaryLanguage")
+  learningUsers TelegramUser[] @relation("LearningLanguage")
+
+  @@map("languages")
+}
+
+model VocabWord {
+  id            Int          @id @default(autoincrement()) @map("id")
+  languageId   Int          @map("language_id")
+  text          String      @map("text")
+
+  language      Language    @relation("LanguageVocabWords", fields: [languageId], references: [id])
+
+  primaryPairs  VocabPair[] @relation("PrimaryWord")
+  learningPairs VocabPair[] @relation("LearningWord")
+
+  @@unique([languageId, text])
+  @@map("vocab_words")
+}
+
+model VocabPair {
+  id             Int       @id @default(autoincrement()) @map("id")
+  primaryWordId Int       @map("primary_word_id")
+  learningWordId Int     @map("learning_word_id")
+
+  primaryWord   VocabWord @relation("PrimaryWord", fields: [primaryWordId], references: [id])
+  learningWord  VocabWord @relation("LearningWord", fields: [learningWordId], references: [id])
+
+  userPairs     UserPair[]
+
+  @@unique([primaryWordId, learningWordId])
+  @@map("vocab_pairs")
+}
+
+model TelegramUser {
+  id                  BigInt   @id @map("id") @db.BigInt
+  primaryLanguageId  Int?     @map("primary_language_id")
+  learningLanguageId Int?     @map("learning_language_id")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  primaryLanguage   Language?   @relation("PrimaryLanguage", fields: [primaryLanguageId], references: [id])
+  learningLanguage  Language?   @relation("LearningLanguage", fields: [learningLanguageId], references: [id])
+  userPairs         UserPair[]
+
+  @@map("telegram_users")
+}
+
+model UserPair {
+  userId         BigInt @map("user_id") @db.BigInt
+  vocabPairId    Int    @map("vocab_pair_id")
+  /** 0..10 — «ящик» в лестнице Пимслера */
+  pimsleurLevel  Int    @default(0) @map("pimsleur_level")
+  nextReviewMs   BigInt @map("next_review_ms") @db.BigInt
+
+  user       TelegramUser @relation(fields: [userId], references: [id])
+  vocabPair  VocabPair    @relation(fields: [vocabPairId], references: [id])
+
+  @@id([userId, vocabPairId])
+  @@map("user_pairs")
+}
+
