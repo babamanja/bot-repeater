@@ -17,7 +17,7 @@
     "build:frontend": "npm run build -w vocab-bot-frontend",
     "build:bot": "npm run build -w vocab-bot",
     "build": "npm run build:shared && npm run build:backend && npm run build:frontend && npm run build:bot",
-    "vercel-build": "npm run build -w @vocab-bot/shared && npm run build -w vocab-bot-backend && npm run db:deploy -w vocab-bot-backend && npm run build -w vocab-bot-frontend",
+    "vercel-build": "node scripts/vercel-build.mjs",
     "typecheck": "npm run build:shared && npm run typecheck -w @vocab-bot/shared && npm run typecheck -w vocab-bot-backend && npm run typecheck -w vocab-bot-frontend && npm run typecheck -w vocab-bot",
     "test": "npm run test -w vocab-bot-backend",
     "lint": "npm run lint -w vocab-bot-frontend",
@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "@vercel/node": "^5.8.17",
+    "@vercel/static-build": "^2.10.3",
     "prettier": "^3.3.3"
   }
 }

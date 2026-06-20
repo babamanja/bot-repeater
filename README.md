@@ -24,9 +24,21 @@ Telegram vocabulary bot with admin web panel, Paddle + Telegram Stars subscripti
 
 ## Deploy (Vercel)
 
-Same as AI Tutor: `vercel.json` builds backend + frontend, runs migrations via `db:deploy`.
+Monorepo deploys from the **repository root** (same layout as AI Tutor).
 
-Set env vars from `backend/.env.example` and `frontend/.env.example` in Vercel.
+### Vercel project settings
+
+| Setting | Value |
+|---------|--------|
+| **Root Directory** | *(empty — repository root)* |
+| **Framework Preset** | Other |
+| **Build Command** | **Override OFF** (empty) |
+| **Output Directory** | **Override OFF** (empty) |
+| **Install Command** | **Override OFF** (empty) |
+
+Everything is driven by root `vercel.json`: `@vercel/static-build` for the Vite SPA, `@vercel/node` for `api/index.ts`.
+
+Set env vars from `backend/.env.example` and `frontend/.env.example` in the Vercel dashboard.
 
 ## User identity
 
