@@ -1,0 +1,311 @@
+{
+  "legal": {
+    "brand": "QuizBuddy",
+    "backToHome": "Back to home",
+    "lastUpdated": "Last updated: {{date}}",
+    "relatedLabel": "Related policies",
+    "privacy": {
+      "title": "Privacy Policy",
+      "lastUpdatedDate": "May 18, 2026",
+      "sections": [
+        {
+          "title": "1. Introduction",
+          "paragraphs": [
+            "QuizBuddy (\"we\", \"us\", or \"our\") provides an online service that turns study materials into AI-generated quizzes. This Privacy Policy explains how we collect, use, disclose, and protect personal information when you visit our website, create an account, or use our product.",
+            "By using QuizBuddy, you agree to the practices described in this policy. If you do not agree, please do not use the service."
+          ]
+        },
+        {
+          "title": "2. Information we collect",
+          "paragraphs": ["We may collect the following categories of information:"],
+          "list": [
+            "Account information such as your name, email address, password hash, and authentication provider identifiers when you sign up or sign in.",
+            "Content you upload or submit, including documents, text, and quiz-related data you create in the product.",
+            "Usage and technical data such as IP address, browser type, device information, pages viewed, and product interaction events.",
+            "Billing information processed by our payment partners. We do not store full payment card numbers on our servers.",
+            "Communications you send to us, including support requests and feedback."
+          ]
+        },
+        {
+          "title": "3. How we use information",
+          "paragraphs": ["We use personal information to:"],
+          "list": [
+            "Provide, operate, maintain, and improve QuizBuddy.",
+            "Generate quizzes and related learning features from materials you submit.",
+            "Authenticate users, secure accounts, and prevent fraud or abuse.",
+            "Process subscriptions, payments, and billing history.",
+            "Send service-related messages, such as account notices and security alerts.",
+            "Analyze product usage to understand performance and improve the experience.",
+            "Comply with legal obligations and enforce our Terms of Service."
+          ]
+        },
+        {
+          "title": "4. AI processing and uploaded files",
+          "paragraphs": [
+            "When you upload study materials, we process that content to generate quizzes, explanations, and related outputs. This processing may involve third-party AI or cloud infrastructure providers acting on our instructions.",
+            "Do not upload content you do not have the right to use, or content that contains sensitive personal data you do not want processed for quiz generation.",
+            "We retain uploaded content and generated outputs for as long as needed to provide the service, comply with law, resolve disputes, and enforce our agreements, unless you delete the content or your account where deletion features are available."
+          ]
+        },
+        {
+          "title": "5. Cookies and analytics",
+          "paragraphs": [
+            "We use cookies and similar technologies to keep you signed in, remember preferences, and understand how the product is used. We may use analytics tools to measure traffic and feature usage.",
+            "You can control cookies through your browser settings. Disabling certain cookies may affect sign-in and other core functionality."
+          ]
+        },
+        {
+          "title": "6. How we share information",
+          "paragraphs": ["We may share information with:"],
+          "list": [
+            "Service providers that help us host infrastructure, process payments, deliver email, provide analytics, or operate AI features.",
+            "Professional advisers and authorities when required by law, court order, or to protect rights, safety, and security.",
+            "A successor entity in connection with a merger, acquisition, or sale of assets, subject to appropriate safeguards."
+          ],
+          "paragraphsAfter": [
+            "We do not sell your personal information."
+          ]
+        },
+        {
+          "title": "7. International transfers",
+          "paragraphs": [
+            "Your information may be processed in countries other than the one where you live. Where required, we use appropriate safeguards for cross-border transfers."
+          ]
+        },
+        {
+          "title": "8. Data retention",
+          "paragraphs": [
+            "We keep personal information only for as long as necessary for the purposes described in this policy, including to provide the service, meet legal requirements, resolve disputes, and enforce our agreements.",
+            "When information is no longer needed, we delete or anonymize it in accordance with our retention practices."
+          ]
+        },
+        {
+          "title": "9. Your rights and choices",
+          "paragraphs": [
+            "Depending on your location, you may have rights to access, correct, delete, or export your personal information, object to or restrict certain processing, and withdraw consent where processing is consent-based.",
+            "You can update some account details in your profile settings. For other requests, contact us using the details below. We may need to verify your identity before responding."
+          ]
+        },
+        {
+          "title": "10. Security",
+          "paragraphs": [
+            "We use administrative, technical, and organizational measures designed to protect personal information. No method of transmission or storage is completely secure, and we cannot guarantee absolute security."
+          ]
+        },
+        {
+          "title": "11. Children",
+          "paragraphs": [
+            "QuizBuddy is not directed to children under 13, and we do not knowingly collect personal information from children under 13. If you believe a child has provided us personal information, contact us and we will take appropriate steps to delete it."
+          ]
+        },
+        {
+          "title": "12. Changes to this policy",
+          "paragraphs": [
+            "We may update this Privacy Policy from time to time. We will post the revised version on this page and update the \"Last updated\" date. Material changes may also be communicated through the product or by email where appropriate."
+          ]
+        },
+        {
+          "title": "13. Contact us",
+          "paragraphs": [
+            "If you have questions about this Privacy Policy or our privacy practices, contact us at privacy@quizbuddy.io."
+          ]
+        }
+      ]
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "lastUpdatedDate": "May 18, 2026",
+      "sections": [
+        {
+          "title": "1. Agreement",
+          "paragraphs": [
+            "These Terms of Service (\"Terms\") govern your access to and use of QuizBuddy, including our website, applications, and related services (collectively, the \"Service\").",
+            "By creating an account or using the Service, you agree to these Terms and to our Privacy Policy. If you do not agree, do not use the Service."
+          ]
+        },
+        {
+          "title": "2. Eligibility",
+          "paragraphs": [
+            "You must be at least 13 years old to use QuizBuddy. If you are under the age of majority where you live, you may use the Service only with permission from a parent or legal guardian who accepts these Terms on your behalf."
+          ]
+        },
+        {
+          "title": "3. Accounts and security",
+          "paragraphs": [
+            "You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account.",
+            "You agree to provide accurate information and to notify us promptly of any unauthorized use of your account."
+          ]
+        },
+        {
+          "title": "4. Subscriptions, points, and payments",
+          "paragraphs": [
+            "Some features require a paid plan, subscription, or point balance. Prices, billing intervals, and included features are shown at checkout or in the product and may change with notice where required.",
+            "Payments are processed by third-party payment providers. By purchasing a plan, you authorize us and our payment partners to charge the applicable fees, taxes, and recurring amounts until you cancel in accordance with the billing terms presented at purchase.",
+            "Except where required by law, fees are non-refundable once a billing period has started. We may suspend or limit access if payment fails."
+          ]
+        },
+        {
+          "title": "5. Your content and license",
+          "paragraphs": [
+            "You retain ownership of materials you upload and quizzes you create, subject to third-party rights in the underlying content.",
+            "You grant QuizBuddy a worldwide, non-exclusive license to host, store, reproduce, process, and display your content solely to operate, provide, and improve the Service, including to generate quizzes and related outputs using automated systems.",
+            "You represent that you have the rights needed to upload and use your content with the Service and that your content does not violate law or the rights of others."
+          ]
+        },
+        {
+          "title": "6. Acceptable use",
+          "paragraphs": ["You agree not to:"],
+          "list": [
+            "Use the Service for unlawful, harmful, fraudulent, or abusive purposes.",
+            "Upload malware, attempt to gain unauthorized access, or interfere with the Service or its security.",
+            "Reverse engineer, scrape, or misuse the Service except as permitted by law.",
+            "Use the Service to generate or distribute content that infringes intellectual property, privacy, or other rights.",
+            "Resell, sublicense, or commercially exploit the Service except as expressly allowed by us in writing."
+          ]
+        },
+        {
+          "title": "7. AI-generated output",
+          "paragraphs": [
+            "QuizBuddy uses automated systems to generate quizzes and related content. Outputs may be inaccurate, incomplete, or unsuitable for a particular purpose.",
+            "You are responsible for reviewing outputs before relying on them for study, assessment, or any high-stakes use. The Service is provided for learning support and does not guarantee academic outcomes."
+          ]
+        },
+        {
+          "title": "8. Intellectual property",
+          "paragraphs": [
+            "The Service, including its software, design, branding, and documentation, is owned by QuizBuddy or its licensors and is protected by intellectual property laws.",
+            "Except for the limited rights expressly granted in these Terms, no rights are transferred to you."
+          ]
+        },
+        {
+          "title": "9. Third-party services",
+          "paragraphs": [
+            "The Service may integrate with or link to third-party services, including authentication, payment, analytics, and AI providers. Your use of those services may be subject to separate terms and privacy policies."
+          ]
+        },
+        {
+          "title": "10. Suspension and termination",
+          "paragraphs": [
+            "You may stop using the Service at any time and may delete your account where account deletion is available in the product.",
+            "We may suspend or terminate access if you violate these Terms, create risk or legal exposure, or where required to protect the Service or other users. Provisions that by their nature should survive termination will survive."
+          ]
+        },
+        {
+          "title": "11. Disclaimers",
+          "paragraphs": [
+            "THE SERVICE IS PROVIDED \"AS IS\" AND \"AS AVAILABLE\" WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS, IMPLIED, OR STATUTORY, INCLUDING IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.",
+            "WE DO NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED, ERROR-FREE, OR SECURE."
+          ]
+        },
+        {
+          "title": "12. Limitation of liability",
+          "paragraphs": [
+            "TO THE MAXIMUM EXTENT PERMITTED BY LAW, QUIZBUDDY AND ITS AFFILIATES, OFFICERS, EMPLOYEES, AND SUPPLIERS WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, DATA, OR GOODWILL, ARISING OUT OF OR RELATED TO YOUR USE OF THE SERVICE.",
+            "OUR TOTAL LIABILITY FOR ANY CLAIM ARISING OUT OF OR RELATING TO THE SERVICE WILL NOT EXCEED THE GREATER OF (A) THE AMOUNTS YOU PAID TO US FOR THE SERVICE IN THE TWELVE MONTHS BEFORE THE CLAIM OR (B) USD $100."
+          ]
+        },
+        {
+          "title": "13. Indemnification",
+          "paragraphs": [
+            "You will defend, indemnify, and hold harmless QuizBuddy and its affiliates from claims, damages, losses, and expenses (including reasonable legal fees) arising out of your content, your use of the Service, or your violation of these Terms or applicable law."
+          ]
+        },
+        {
+          "title": "14. Governing law",
+          "paragraphs": [
+            "These Terms are governed by the laws applicable in the jurisdiction where QuizBuddy operates, without regard to conflict-of-law rules, except where mandatory consumer protection laws in your country require otherwise."
+          ]
+        },
+        {
+          "title": "15. Changes",
+          "paragraphs": [
+            "We may modify these Terms from time to time. If we make material changes, we will provide notice through the Service or by other reasonable means. Continued use after the effective date of updated Terms constitutes acceptance."
+          ]
+        },
+        {
+          "title": "16. Contact",
+          "paragraphs": [
+            "Questions about these Terms may be sent to legal@quizbuddy.io."
+          ]
+        }
+      ]
+    },
+    "refund": {
+      "title": "Refund Policy",
+      "lastUpdatedDate": "May 18, 2026",
+      "sections": [
+        {
+          "title": "1. Overview",
+          "paragraphs": [
+            "This Refund Policy explains how refunds work for paid subscriptions, point purchases, and other charges on QuizBuddy (\"we\", \"us\", or \"our\").",
+            "By making a purchase, you also agree to our Terms of Service. If this policy conflicts with mandatory consumer protection laws in your country, those laws prevail."
+          ]
+        },
+        {
+          "title": "2. Payment processor",
+          "paragraphs": [
+            "Payments are processed by our third-party payment partner (such as Paddle). Your card or wallet provider may show their name on statements.",
+            "Refund requests may need to be handled through the same payment channel used for the original purchase, subject to the processor's rules and timelines."
+          ]
+        },
+        {
+          "title": "3. Subscriptions",
+          "paragraphs": [
+            "Premium subscriptions renew automatically for the billing period you select (for example, monthly or yearly) until you cancel.",
+            "You can cancel renewal at any time from your account subscription settings. Cancellation stops future charges; it does not automatically refund amounts already paid for the current billing period.",
+            "Except where required by law, subscription fees are generally non-refundable once a billing period has started. If you cancel, you typically retain access to paid features until the end of the period you already paid for."
+          ]
+        },
+        {
+          "title": "4. Point packs and one-time purchases",
+          "paragraphs": [
+            "Point packs and other one-time purchases are delivered digitally when payment succeeds. Except where required by law, these purchases are non-refundable once points have been credited to your account or used.",
+            "If a technical error prevented delivery of purchased points or paid features, contact us promptly with your account email and order details so we can investigate."
+          ]
+        },
+        {
+          "title": "5. When we may issue a refund",
+          "paragraphs": ["We may approve a refund (full or partial) at our discretion, or where required by law, in situations such as:"],
+          "list": [
+            "Duplicate charges or billing errors confirmed on our side or by the payment processor.",
+            "Failure to provide the purchased digital service after payment, where the issue is not caused by your account, device, or network.",
+            "Unauthorized charges reported in accordance with applicable payment network rules, after verification.",
+            "Other circumstances required by applicable consumer protection regulations."
+          ]
+        },
+        {
+          "title": "6. Free trials and promotions",
+          "paragraphs": [
+            "From time to time we may offer free trials or promotional pricing. When a trial converts to a paid plan, standard billing and refund rules apply to charges after conversion unless stated otherwise in the offer terms.",
+            "Promotional or discounted prices may not be eligible for partial refunds based on the difference between promotional and regular pricing."
+          ]
+        },
+        {
+          "title": "7. How to request a refund",
+          "paragraphs": [
+            "To request a refund, email refunds@quizbuddy.io from the email address associated with your account. Include your full name, the date of purchase, the amount charged, and a brief description of the issue.",
+            "We aim to respond within a reasonable time. Approved refunds are issued to the original payment method; processing times depend on your bank or card issuer and may take several business days."
+          ]
+        },
+        {
+          "title": "8. Chargebacks",
+          "paragraphs": [
+            "If you dispute a charge with your bank or card issuer before contacting us, we may suspend your account while the dispute is investigated. Providing false or abusive chargeback claims may result in permanent account closure."
+          ]
+        },
+        {
+          "title": "9. Changes to this policy",
+          "paragraphs": [
+            "We may update this Refund Policy from time to time. The \"Last updated\" date at the top of this page will change when we do. Material changes may also be communicated through the Service or by email where appropriate."
+          ]
+        },
+        {
+          "title": "10. Contact",
+          "paragraphs": [
+            "Questions about refunds may be sent to refunds@quizbuddy.io. For general legal inquiries, see our Terms of Service."
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,5 +1,11 @@
-/.env
+.env
 /dist
 /node_modules
 /prisma/src/generated
 /prisma/migrations
+
+backend/node_modules
+frontend/node_modules
+bot/node_modules
+packages/shared/node_modules
+api/node_modules

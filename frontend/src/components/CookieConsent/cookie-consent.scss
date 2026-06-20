@@ -1,0 +1,73 @@
+@use "../../styles/variables" as *;
+
+.cookie-consent {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 1900;
+  padding: $space-4;
+  pointer-events: none;
+}
+
+.cookie-consent__inner {
+  pointer-events: auto;
+  max-width: $max-content-width;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-4;
+  padding: $space-4 $space-5;
+  border-radius: $radius-md;
+  background: $color-surface;
+  border: 1px solid $color-border;
+  box-shadow: $shadow-card-hover;
+}
+
+.cookie-consent__message {
+  margin: 0;
+  flex: 1 1 16rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: $color-text;
+}
+
+.cookie-consent__link {
+  color: $color-primary;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.cookie-consent__link:hover {
+  color: $color-primary-hover;
+  text-decoration: underline;
+}
+
+.cookie-consent__inner .button {
+  flex-shrink: 0;
+}
+
+@media (max-width: 540px) {
+  .cookie-consent {
+    padding: $space-3;
+    padding-bottom: calc(#{$space-3} + env(safe-area-inset-bottom, 0px));
+  }
+
+  .cookie-consent__inner {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: $space-3;
+    padding: $space-3 $space-4;
+  }
+
+  .cookie-consent__message {
+    flex: 0 1 auto;
+  }
+
+  .cookie-consent__inner .button {
+    width: 100%;
+    margin: 0;
+  }
+}

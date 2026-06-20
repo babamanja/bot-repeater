@@ -1,62 +1,29 @@
 {
-  "name": "vocab-bot",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "name": "vocab-bot-monorepo",
   "private": true,
-  "license": "UNLICENSED",
+  "workspaces": [
+    "packages/shared",
+    "backend",
+    "frontend",
+    "bot"
+  ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "node dist/main.js",
-    "start:dev": "tsx watch src/main.ts",
-    "start:debug": "tsx watch --inspect src/main.ts",
-    "start:prod": "node dist/main.js",
-    "lint": "eslint \"src/**/*.ts\" --fix",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk node_modules/jest/bin/jest.js --runInBand"
-  },
-  "dependencies": {
-    "@prisma/adapter-pg": "^7.5.0",
-    "@prisma/client": "^7.5.0",
-    "pg": "^8.20.0",
-    "telegraf": "^4.16.3"
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:bot": "npm run dev --prefix bot",
+    "dev:all": "npm run dev:backend & npm run dev:frontend & npm run dev:bot",
+    "build:shared": "npm run build -w @vocab-bot/shared",
+    "build:backend": "npm run build -w vocab-bot-backend",
+    "build:frontend": "npm run build -w vocab-bot-frontend",
+    "build:bot": "npm run build -w vocab-bot",
+    "build": "npm run build:shared && npm run build:backend && npm run build:frontend && npm run build:bot",
+    "typecheck": "npm run build:shared && npm run typecheck -w @vocab-bot/shared && npm run typecheck -w vocab-bot-backend && npm run typecheck -w vocab-bot-frontend && npm run typecheck -w vocab-bot",
+    "test": "npm run test -w vocab-bot-backend",
+    "lint": "npm run lint -w vocab-bot-frontend",
+    "format": "prettier --write \"**/*.{ts,tsx,js,mjs,json,md,yml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,json,md,yml}\""
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.2.0",
-    "@eslint/js": "^9.18.0",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^22.10.7",
-    "eslint": "^9.18.0",
-    "eslint-config-prettier": "^10.0.1",
-    "eslint-plugin-prettier": "^5.2.2",
-    "globals": "^16.0.0",
-    "jest": "^30.0.0",
-    "prettier": "^3.4.2",
-    "prisma": "^7.5.0",
-    "source-map-support": "^0.5.21",
-    "ts-jest": "^29.2.5",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.3",
-    "typescript-eslint": "^8.20.0"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "prettier": "^3.3.3"
   }
 }

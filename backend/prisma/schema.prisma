@@ -1,0 +1,267 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                       Int       @id @default(autoincrement())
+  userName                 String    @map("user_name")
+  email                    String?   @unique
+  telegramId               BigInt?   @unique @map("telegram_id") @db.BigInt
+  telegramUsername         String?   @map("telegram_username")
+  previousEmailForRecovery String?   @unique @map("previous_email_for_recovery")
+  role                     String    @default("user")
+  deletedAt                DateTime? @map("deleted_at")
+  emailVerifiedAt          DateTime? @map("email_verified_at")
+  /// Reserved for future AI features (token economy).
+  tokenBalance             BigInt    @default(0) @map("token_balance")
+  qualificationCompletedAt DateTime? @map("qualification_completed_at")
+  isGuest                  Boolean   @default(false) @map("is_guest")
+  primaryLanguageId        Int?      @map("primary_language_id")
+  learningLanguageId       Int?      @map("learning_language_id")
+  createdAt                DateTime  @default(now()) @map("created_at")
+
+  auth                    Auth?
+  subscription            Subscription?
+  payments                Payment[]
+  tokenLedgerEntries      TokenLedgerEntry[]
+  qualificationSubmission QualificationSubmission?
+  feedbackEntries         UserFeedback[]
+  aiUsageAnalytics        AiUsageAnalytics[]
+  telegramLinkCodes       TelegramLinkCode[]
+  userPairs               UserPair[]
+  primaryLanguage         Language? @relation("PrimaryLanguage", fields: [primaryLanguageId], references: [id])
+  learningLanguage        Language? @relation("LearningLanguage", fields: [learningLanguageId], references: [id])
+
+  @@map("users")
+}
+
+model TelegramLinkCode {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    Int       @map("user_id")
+  code      String    @unique
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("telegram_link_codes")
+}
+
+enum TokenTransactionType {
+  purchase
+  spend
+  refund
+  bonus
+  expire
+  admin_adjustment
+}
+
+model TokenLedgerEntry {
+  id              String               @id @default(uuid()) @db.Uuid
+  userId          Int                  @map("user_id")
+  delta           BigInt
+  balanceAfter    BigInt?              @map("balance_after")
+  transactionType TokenTransactionType @map("transaction_type")
+  referenceId     String?              @map("reference_id")
+  idempotencyKey  String?              @unique @map("idempotency_key")
+  metadata        Json?
+  createdAt       DateTime             @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([transactionType, createdAt(sort: Desc)])
+  @@map("token_ledger_entries")
+}
+
+enum PaymentTransactionType {
+  payment
+  refund
+}
+
+enum PaymentStatus {
+  pending
+  succeeded
+  failed
+  refunded
+}
+
+enum SubscriptionPlanCode {
+  basic
+  premium
+}
+
+enum SubscriptionStatus {
+  active
+  canceled
+  past_due
+}
+
+model Payment {
+  id                    String                 @id @default(uuid()) @db.Uuid
+  date                  DateTime               @default(now())
+  userId                Int                    @map("user_id")
+  amount                Float
+  currency              String                 @default("USD")
+  status                PaymentStatus          @default(succeeded)
+  provider              String?
+  providerTransactionId String?                @map("provider_transaction_id")
+  description           String?
+  metadata              Json?
+  originalPaymentId     String?                @map("original_payment_id") @db.Uuid
+  refundReason          String?                @map("refund_reason")
+  transactionType       PaymentTransactionType @map("transaction_type")
+  createdAt             DateTime               @default(now()) @map("created_at")
+  updatedAt             DateTime               @updatedAt @map("updated_at")
+
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalPayment Payment?       @relation("PaymentRefund", fields: [originalPaymentId], references: [id], onDelete: SetNull)
+  refunds         Payment[]      @relation("PaymentRefund")
+  subscriptions   Subscription[]
+
+  @@index([userId, date(sort: Desc)])
+  @@map("payments")
+}
+
+model Subscription {
+  id               String               @id @default(uuid()) @db.Uuid
+  userId           Int                  @unique @map("user_id")
+  planCode         SubscriptionPlanCode @map("plan_code")
+  status           SubscriptionStatus
+  currentPeriodEnd DateTime?            @map("current_period_end")
+  createdAt        DateTime             @default(now()) @map("created_at")
+  paymentId        String?              @map("payment_id") @db.Uuid
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payment Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@map("subscriptions")
+}
+
+model Auth {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @unique @map("user_id")
+  passwordHash String?  @map("password_hash")
+  googleSub    String?  @unique @map("google_sub")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("auth")
+}
+
+model AppSetting {
+  key       String   @id
+  value     Json
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("app_settings")
+}
+
+model AiUsageAnalytics {
+  id                      String   @id @default(uuid()) @db.Uuid
+  userId                  Int?     @map("user_id")
+  feature                 String   @default("general")
+  status                  String
+  sourceTextLength        Int      @default(0) @map("source_text_length")
+  estimatedTokens         Int      @default(0) @map("estimated_tokens")
+  aiInputTokens           Int?     @map("ai_input_tokens")
+  aiOutputTokens          Int?     @map("ai_output_tokens")
+  aiTotalTokens           Int?     @map("ai_total_tokens")
+  aiModel                 String?  @map("ai_model")
+  errorMessage            String?  @map("error_message")
+  createdAt               DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("ai_usage_analytics")
+}
+
+model QualificationSubmission {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      Int      @unique @map("user_id")
+  answers     Json
+  submittedAt DateTime @default(now()) @map("submitted_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([submittedAt(sort: Desc)])
+  @@map("qualification_submissions")
+}
+
+model UserFeedback {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    Int      @map("user_id")
+  category  String
+  message   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+  @@map("user_feedback")
+}
+
+model Language {
+  id            Int    @id @default(autoincrement()) @map("id")
+  name          String @unique @map("name")
+
+  vocabWords    VocabWord[] @relation("LanguageVocabWords")
+  primaryUsers  User[]      @relation("PrimaryLanguage")
+  learningUsers User[]      @relation("LearningLanguage")
+
+  @@map("languages")
+}
+
+model VocabWord {
+  id         Int    @id @default(autoincrement()) @map("id")
+  languageId Int    @map("language_id")
+  text       String @map("text")
+
+  language      Language    @relation("LanguageVocabWords", fields: [languageId], references: [id])
+  primaryPairs  VocabPair[] @relation("PrimaryWord")
+  learningPairs VocabPair[] @relation("LearningWord")
+
+  @@unique([languageId, text])
+  @@map("vocab_words")
+}
+
+model VocabPair {
+  id             Int @id @default(autoincrement()) @map("id")
+  primaryWordId  Int @map("primary_word_id")
+  learningWordId Int @map("learning_word_id")
+
+  primaryWord  VocabWord  @relation("PrimaryWord", fields: [primaryWordId], references: [id])
+  learningWord VocabWord  @relation("LearningWord", fields: [learningWordId], references: [id])
+  userPairs    UserPair[]
+
+  @@unique([primaryWordId, learningWordId])
+  @@map("vocab_pairs")
+}
+
+model UserPair {
+  userId        Int    @map("user_id")
+  vocabPairId   Int    @map("vocab_pair_id")
+  pimsleurLevel Int    @default(0) @map("pimsleur_level")
+  nextReviewMs  BigInt @map("next_review_ms") @db.BigInt
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vocabPair VocabPair @relation(fields: [vocabPairId], references: [id])
+
+  @@id([userId, vocabPairId])
+  @@map("user_pairs")
+}

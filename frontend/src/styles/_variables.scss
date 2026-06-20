@@ -1,0 +1,110 @@
+// QuizBuddy-aligned design tokens (see https://quizbuddy.io/)
+
+// ---------------------------------------------------------------------------
+// Colors
+// ---------------------------------------------------------------------------
+
+$color-text: #0f172a;
+$color-text-muted: #64748b;
+$color-primary: #1e6fe3;
+$color-primary-hover: #1660d4;
+$color-primary-soft: rgba(30, 111, 227, 0.12);
+$color-success: #3cb82e;
+$color-success-hover: #319d27;
+$color-success-soft: rgba(60, 184, 46, 0.14);
+$color-warm: #f4b23e;
+$color-warm-soft: rgba(244, 178, 62, 0.22);
+$color-error: #e63e3e;
+$color-border: #e2e8f0;
+$color-surface: #fff;
+$color-bg: #f7f9fc;
+
+// Brand gradients (landing hero / panels)
+$color-brand-gradient-mid: #1358c4;
+$color-brand-gradient-end: #2a7a6e;
+
+// ---------------------------------------------------------------------------
+// Breakpoints (sync with constants/breakpoints.ts)
+// ---------------------------------------------------------------------------
+
+$breakpoint-xs: 400px;
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 960px;
+$breakpoint-xl: 1280px;
+
+// Max-width for mobile-first "mobile" mixin (767px)
+$breakpoint-mobile-max: $breakpoint-md - 1px;
+
+// ---------------------------------------------------------------------------
+// Layout
+// ---------------------------------------------------------------------------
+
+$sidebar-width: 14rem;
+$sidebar-width-mobile: min(18rem, 85vw);
+$sidebar-main-gap: 2rem;
+$sidebar-main-offset: $sidebar-width + $sidebar-main-gap;
+$app-topbar-height: 3.5rem;
+$max-content-width: 70rem;
+
+// ---------------------------------------------------------------------------
+// Spacing — canonical scale ($space-1 … $space-8)
+// Prefer numeric tokens in new code. Named aliases below keep legacy values.
+// ---------------------------------------------------------------------------
+
+$space-1: 0.25rem; // 4px
+$space-2: 0.5rem; // 8px
+$space-3: 0.75rem; // 12px
+$space-4: 1rem; // 16px
+$space-5: 1.25rem; // 20px
+$space-6: 2rem; // 32px
+$space-7: 3rem; // 48px
+$space-8: 5rem; // 80px
+
+// Legacy app-shell aliases (exact values preserved)
+$space-xs: $space-1;
+$space-sm: 0.35rem;
+$space-md: 0.65rem;
+$space-lg: $space-3;
+$space-xl: $space-4;
+$space-2xl: 1.5rem;
+$space-card: $space-2xl;
+
+// ---------------------------------------------------------------------------
+// Typography
+// ---------------------------------------------------------------------------
+
+$font-size-title: 1.25rem;
+$font-size-heading: clamp(1.35rem, 2.5vw, 1.75rem);
+
+// ---------------------------------------------------------------------------
+// Radii & shadows
+// ---------------------------------------------------------------------------
+
+$radius-sm: 10px;
+$radius-md: 16px;
+$radius-lg: 24px;
+$radius-pill: 9999px;
+
+$shadow-card: 0 4px 24px rgba(15, 23, 42, 0.06);
+$shadow-card-hover: 0 8px 32px rgba(15, 23, 42, 0.1);
+
+// ---------------------------------------------------------------------------
+// Component tokens
+// ---------------------------------------------------------------------------
+
+// Landing hero: CTA button anchored on mascot (tweak per art)
+$landing-hero-cta-left: 48%;
+$landing-hero-cta-top: 175px;
+
+$quiz-option-accents: #a713d4, #694ee4, #613891, #bb60f8;
+
+$btn-primary-background: $color-primary;
+$btn-primary-color: $color-surface;
+$btn-primary-border: none;
+$btn-primary-background-hover: $color-primary-hover;
+
+$btn-secondary-background: transparent;
+$btn-secondary-color: $color-text;
+$btn-secondary-border: 1px solid $color-primary;
+$btn-secondary-background-hover: $color-surface;

@@ -1,0 +1,23 @@
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import test from "node:test";
+import assert from "node:assert/strict";
+
+import { buildSpaContentSecurityPolicy } from "@vocab-bot/shared/contentSecurityPolicy";
+
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+
+function readVercelSpaCsp(): string {
+  const vercel = JSON.parse(readFileSync(resolve(repoRoot, "vercel.json"), "utf8")) as {
+    headers?: Array<{ source?: string; headers?: Array<{ key?: string; value?: string }> }>;
+  };
+  const spaHeaders = vercel.headers?.find((entry) => entry.source?.includes("api"));
+  const csp = spaHeaders?.headers?.find((header) => header.key === "Content-Security-Policy");
+  assert.ok(csp?.value, "vercel.json must define Content-Security-Policy for SPA routes");
+  return csp.value;
+}
+
+test("vercel.json SPA CSP matches shared policy builder", () => {
+  assert.equal(readVercelSpaCsp(), buildSpaContentSecurityPolicy());
+});

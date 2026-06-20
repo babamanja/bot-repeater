@@ -1,0 +1,43 @@
+{
+  "name": "@vocab-bot/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./uploadLimits": {
+      "types": "./dist/uploadLimits.d.ts",
+      "import": "./dist/uploadLimits.js"
+    },
+    "./pdfOcrLimits": {
+      "types": "./dist/pdfOcrLimits.d.ts",
+      "import": "./dist/pdfOcrLimits.js"
+    },
+    "./pricing": {
+      "types": "./dist/pricing.d.ts",
+      "import": "./dist/pricing.js"
+    },
+    "./quizLanguages": {
+      "types": "./dist/quizLanguages.d.ts",
+      "import": "./dist/quizLanguages.js"
+    },
+    "./generationUploadProfile": {
+      "types": "./dist/generationUploadProfile.d.ts",
+      "import": "./dist/generationUploadProfile.js"
+    },
+    "./contentSecurityPolicy": {
+      "types": "./dist/contentSecurityPolicy.d.ts",
+      "import": "./dist/contentSecurityPolicy.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

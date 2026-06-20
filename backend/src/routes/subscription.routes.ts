@@ -1,0 +1,42 @@
+import { Router } from "express";
+import { asyncHandler } from "../middleware/asyncHandler.js";
+import * as subscriptionController from "../controllers/subscription.controller.js";
+import { requireAuth } from "../middleware/requireAuth.js";
+
+const router = Router();
+
+router.get("/me", requireAuth, asyncHandler(subscriptionController.getMySubscription));
+router.post("/me/cancel", requireAuth, asyncHandler(subscriptionController.cancelMySubscription));
+router.post("/me/resume", requireAuth, asyncHandler(subscriptionController.resumeMySubscription));
+router.post(
+  "/checkout-session",
+  requireAuth,
+  asyncHandler(subscriptionController.createMyCheckoutSession),
+);
+router.get(
+  "/payments",
+  requireAuth,
+  asyncHandler(subscriptionController.listMyPayments),
+);
+router.get(
+  "/payments/resolve",
+  requireAuth,
+  asyncHandler(subscriptionController.resolveMyPaymentReturn),
+);
+router.post(
+  "/payments/:paymentId/sync-paddle",
+  requireAuth,
+  asyncHandler(subscriptionController.syncMyPaymentFromPaddle),
+);
+router.post(
+  "/payments/:paymentId/abandon",
+  requireAuth,
+  asyncHandler(subscriptionController.abandonMyPayment),
+);
+router.get(
+  "/payments/:paymentId",
+  requireAuth,
+  asyncHandler(subscriptionController.getMyPaymentStatus),
+);
+
+export default router;

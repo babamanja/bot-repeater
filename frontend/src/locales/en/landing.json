@@ -1,0 +1,252 @@
+{
+  "landing": {
+    "nav": {
+      "brand": "QuizBuddy",
+      "benefits": "Benefits",
+      "howItWorks": "How it works",
+      "pricing": "Pricing",
+      "faq": "FAQ",
+      "contact": "Contact",
+      "cta": "Get started",
+      "greeting": "Hi, {{name}}",
+      "goToApp": "Open app",
+      "goToAppAria": "Go to your QuizBuddy workspace",
+      "menuOpen": "Open menu",
+      "menuClose": "Close menu",
+      "userMenuOpen": "Open account menu",
+      "userMenuClose": "Close account menu",
+      "primaryNavAria": "Primary navigation"
+    },
+    "hero": {
+      "title": "AI quiz companion: stop rereading, start remembering",
+      "subtitle": "Upload your materials. Find the gaps. Remember it for good.",
+      "persona": "For students who want their study time to actually stick",
+      "cta": "Get your first quiz",
+      "imageAlt": "Illustration: quiz practice from your study materials",
+      "visualAriaLabel": "Mascot illustration with primary call to action",
+      "demoTitle": "Try Now!",
+      "demo": {
+        "subtitle": "Upload your file — we'll generate a quiz.",
+        "upload": {
+          "title": "Upload your file",
+          "subtitle": "We'll generate a quiz from your material.",
+          "dropzone": "Drop your file or click here to browse",
+          "dropzoneDragActive": "Release to upload your file",
+          "hint": "PDF, plain text (.txt), or images (JPG, PNG, WebP), up to {{maxMb}} MB. Scanned pages are recognized automatically.",
+          "features": {
+            "instant": "10 questions generated instantly",
+            "points": "Based on the most important points",
+            "results": "See your results right away"
+          }
+        },
+        "generateQuiz": "Generate quiz",
+        "readyDivider": "Ready to generate your quiz?",
+        "readyToGenerate": "Your file is ready. Generate a quiz when you're ready.",
+        "textTruncatedNotice": "Your file was longer than the demo limit — we kept the first {{max}} characters.",
+        "pdfPagesTruncatedNotice": "This PDF has more than {{max}} pages — only the first {{max}} pages were used.",
+        "uploadAnother": "Upload another file",
+        "check": "Check answers",
+        "next": "Next",
+        "previous": "Previous",
+        "progress": "Question {{current}} of {{total}}",
+        "score": "{{correct}} of {{total}} correct",
+        "fileLabel": "File: {{name}}",
+        "extracting": "Reading your file…",
+        "extractingTitle": "Reading your file…",
+        "extractingHint": "This usually takes a few seconds.",
+        "generating": "Generating your {{count}}-question quiz…",
+        "generatingTitle": "Generating your quiz…",
+        "generatingHint": "This usually takes about 20–30 seconds.",
+        "secureNotice": "Your file is secure and private. We don't store or share your materials.",
+        "errorGeneric": "Something went wrong. Please try another file.",
+        "errorEmptyFile": "We couldn't find any text in that file.",
+        "errorGenerationTimeout": "Quiz generation is taking too long. Please try again.",
+        "errorCheckFailed": "Could not check your answers. Please try again.",
+        "errorSignupRequired": "Please sign up to check your answers.",
+        "loginToContinue": "Sign in to save and continue",
+        "signInToContinue": "Sign in to continue",
+        "signInPrompt": "Sign in to save your progress, see your score, and review answers.",
+        "errorInsufficientTokens": "Not enough tokens. Top up your balance to finish this quiz."
+      }
+    },
+    "pains": {
+      "title": "You study for hours… and still don’t feel ready",
+      "items": [
+        "My notes are scattered across PDFs, slides, and docs. Turning them into practice feels like manual labor.",
+        "I keep rereading everything, but when I actually need it, I’m not sure what I remember.",
+        "It feels clear when I read it… but if I don’t review, it’s gone the next day.",
+        "I always plan to study gradually, and then end up cramming right before the deadline.",
+        "The AI hallucinates, and I can’t edit the quizzes. So I’m stuck learning from mistakes that aren’t even mine."
+      ],
+      "outcome": ""
+    },
+    "benefits": {
+      "title": "Stop rereading. Start remembering",
+      "subtitle": "Know what you remember. Fix what you don’t.",
+      "items": [
+        {
+          "title": "Remember up to 2× more with active recall",
+          "description": "Based on how memory works. Repeat what matters"
+        },
+        {
+          "title": "Feel confident before exams",
+          "description": "Know what you actually know."
+        },
+        {
+          "title": "No more last-minute panic",
+          "description": "Study smoothly. No cramming the night before."
+        },
+        {
+          "title": "Stay focused while studying",
+          "description": "Stop just reading. Start practicing."
+        }
+      ]
+    },
+    "product": {
+      "title": "How it works",
+      "subtitle": "From notes to knowledge in 5 steps",
+      "steps": [
+        {
+          "title": "Upload what you already study",
+          "bullets": [
+            "Drop in PDFs, notes, or slides. No setup, no reformatting.",
+            "Start right away."
+          ],
+          "imagePlaceholder": "Step 1 UI: file upload"
+        },
+        {
+          "title": "AI finds what actually matters",
+          "bullets": [
+            "We find key ideas for you.",
+            "Focus on what matters."
+          ],
+          "imagePlaceholder": "Step 2 UI: key points extraction"
+        },
+        {
+          "title": "Turn key points into quizzes",
+          "bullets": [
+            "Practice questions from your notes.",
+            "Learn exactly what you need, no random questions."
+          ],
+          "imagePlaceholder": "Step 3 UI: quiz generation"
+        },
+        {
+          "title": "Fix anything in seconds",
+          "bullets": [
+            "Edit if something looks wrong.",
+            "Stay in control. AI assists, you decide."
+          ],
+          "imagePlaceholder": "Step 4 UI: editing"
+        },
+        {
+          "title": "Never forget what you learned",
+          "bullets": [
+            "We remind you before you forget.",
+            "Every key point is repeated until it sticks."
+          ],
+          "imagePlaceholder": "Step 5 UI: spaced repetition"
+        }
+      ]
+    },
+    "pricing": {
+      "title": "Simple pricing",
+      "subtitle": "Start free. Upgrade if you need more.",
+      "basic": {
+        "name": "Basic",
+        "period": "/ month",
+        "features": [
+          "Generate quizzes from your text",
+          "Upload files up to 5 MB",
+          "Access quiz history and attempts",
+          "Standard support"
+        ],
+        "cta": "Choose Basic"
+      },
+      "premium": {
+        "name": "Premium",
+        "period": "/ month",
+        "features": [
+          "Priority quiz generation speed",
+          "600 points included every month",
+          "30% discount on point top-ups",
+          "Upload files up to 25 MB",
+          "Upload and save documents without generating a quiz",
+          "Advanced options on Create Quiz — tune questions per chunk and preview chunk breakdown",
+          "Priority support response"
+        ],
+        "cta": "Go Premium",
+        "badge": "Popular"
+      },
+      "payAsYouGo": {
+        "name": "Pay as you go",
+        "period": "",
+        "features": [
+          "No monthly commitment",
+          "Buy only when you need more points",
+          "Works as a standalone plan"
+        ],
+        "cta": "Buy point pack",
+        "packSelectorLabel": "Select point package",
+        "tokensLabel": "Points",
+        "packagePriceLabel": "Package price"
+      }
+    },
+    "faq": {
+      "title": "FAQ",
+      "items": [
+        {
+          "question": "What can I upload?",
+          "answer": "Common formats like PDF and text work great. We’re expanding support continuously."
+        },
+        {
+          "question": "How does QuizBuddy use my files?",
+          "answer": "Content is processed to generate questions and summaries for your sessions. You control retention settings."
+        },
+        {
+          "question": "Is my data private?",
+          "answer": "Encryption in transit and sensible access controls. Share only what you choose on Team plans."
+        }
+      ]
+    },
+    "ctaSection": {
+      "title": "Turn your notes into quizzes, and actually remember them",
+      "subtitle": "Upload your materials, get your first quiz in minutes, and see what you really know.",
+      "button": "Get your first quiz",
+      "buttonHint": "Sign up, upload your materials, and get your first quiz in minutes. It's free to try.",
+      "buttonLoggedIn": "Go to your workspace",
+      "buttonHintLoggedIn": "Pick up where you left off — create a quiz or review your existing ones."
+    },
+    "footer": {
+      "tagline": "Turn your study materials into quizzes, and actually remember them.",
+      "columns": {
+        "product": {
+          "title": "Product",
+          "links": [
+            "Benefits",
+            "How it works",
+            "Pricing",
+            "Changelog"
+          ]
+        },
+        "company": {
+          "title": "Company",
+          "links": [
+            "About",
+            "Careers",
+            "Press",
+            "Contact"
+          ]
+        },
+        "legal": {
+          "title": "Legal",
+          "links": [
+            "Privacy",
+            "Terms",
+            "Refund Policy"
+          ]
+        }
+      },
+      "copyright": "© {{year}} quizBuddy. All rights reserved."
+    }
+  }
+}

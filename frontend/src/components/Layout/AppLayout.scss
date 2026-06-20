@@ -1,0 +1,346 @@
+@use "../../styles/variables" as *;
+@use "../../styles/breakpoints" as *;
+
+$app-backdrop-z: 99;
+$app-sidebar-z: 100;
+$app-topbar-z: 101;
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  align-items: flex-start;
+}
+
+// ---------------------------------------------------------------------------
+// Mobile top bar (hidden on tablet+)
+// ---------------------------------------------------------------------------
+
+.app-topbar {
+  display: none;
+}
+
+.app-topbar__brand {
+  min-width: 0;
+  margin-right: auto;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover .app-topbar__title {
+    color: $color-primary;
+  }
+}
+
+.app-topbar__title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: $color-text;
+  line-height: 1.2;
+}
+
+.app-topbar__burger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-text;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: 2px;
+  }
+}
+
+.app-topbar__burger-lines {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  width: 1.375rem;
+}
+
+.app-topbar__burger-line {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: currentColor;
+  border-radius: 1px;
+  transition:
+    transform 0.22s ease,
+    opacity 0.22s ease;
+}
+
+.app-topbar__burger--open .app-topbar__burger-line:nth-child(1) {
+  transform: translateY(8px) rotate(45deg);
+}
+
+.app-topbar__burger--open .app-topbar__burger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.app-topbar__burger--open .app-topbar__burger-line:nth-child(3) {
+  transform: translateY(-8px) rotate(-45deg);
+}
+
+// ---------------------------------------------------------------------------
+// Sidebar
+// ---------------------------------------------------------------------------
+
+.app-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  min-height: 100vh;
+  flex: 0 0 $sidebar-width;
+  width: $sidebar-width;
+  display: flex;
+  flex-direction: column;
+  padding: $space-2xl $space-xl;
+  background: $color-surface;
+  border-right: 1px solid $color-border;
+  box-shadow: $shadow-card;
+  overflow-y: auto;
+}
+
+.app-sidebar__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: $app-backdrop-z;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: rgba(15, 23, 42, 0.45);
+  cursor: pointer;
+}
+
+.app-sidebar__brand {
+  display: block;
+  margin-bottom: $space-2xl;
+  padding-bottom: $space-xl;
+  border-bottom: 1px solid $color-border;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover .app-sidebar__title {
+    color: $color-primary;
+  }
+}
+
+.app-sidebar__title {
+  display: block;
+  font-size: $font-size-heading;
+  font-weight: 700;
+  color: $color-text;
+  line-height: 1.2;
+}
+
+.app-sidebar__tagline {
+  display: block;
+  margin-top: $space-sm;
+  font-size: 0.85rem;
+  color: $color-text-muted;
+}
+
+.app-sidebar__account-meta {
+  margin-top: $space-md;
+  display: grid;
+  gap: $space-md;
+}
+
+.app-sidebar__meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-sm;
+}
+
+.app-sidebar__meta-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: $color-text-muted;
+}
+
+.app-sidebar__plan-badge {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: $radius-pill;
+  line-height: 1.3;
+
+  &--basic {
+    background: $color-border;
+    color: $color-text;
+  }
+
+  &--premium {
+    background: linear-gradient(135deg, $color-warm 0%, #e89a1a 100%);
+    color: $color-text;
+    box-shadow: 0 2px 8px rgba(244, 178, 62, 0.35);
+  }
+}
+
+.app-sidebar__tokens-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: $color-primary;
+  font-variant-numeric: tabular-nums;
+}
+
+.app-nav {
+  flex: 1;
+  min-height: 0;
+}
+
+.app-nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.app-nav__item + .app-nav__item {
+  margin-top: $space-md;
+}
+
+.app-nav__link {
+  display: block;
+  padding: $space-md $space-lg;
+  border-radius: $radius-sm;
+  color: $color-text;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    background: $color-primary-soft;
+    color: $color-primary;
+  }
+
+  &--active {
+    background: $color-primary-soft;
+    color: $color-primary;
+  }
+}
+
+.app-main {
+  margin-left: $sidebar-main-offset;
+  flex: 1;
+  align-self: stretch;
+  min-width: 0;
+  padding: $space-2xl;
+  max-width: $max-content-width;
+}
+
+.app-email-verify-banner {
+  margin-bottom: $space-xl;
+  padding: $space-lg $space-xl;
+  border-radius: $radius-sm;
+  border: 1px solid $color-border;
+  background: $color-surface;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-md;
+}
+
+.app-email-verify-banner__text {
+  margin: 0;
+  flex: 1 1 12rem;
+  font-size: 0.95rem;
+  color: $color-text;
+}
+
+.app-email-verify-banner__sub {
+  margin: 0;
+  width: 100%;
+  font-size: 0.85rem;
+  color: $color-text-muted;
+}
+
+// ---------------------------------------------------------------------------
+// Mobile layout
+// ---------------------------------------------------------------------------
+
+@include mobile {
+  .app-topbar {
+    display: flex;
+    align-items: center;
+    gap: $space-md;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: $app-topbar-height;
+    padding: 0 $space-lg;
+    background: $color-surface;
+    border-bottom: 1px solid $color-border;
+    box-shadow: $shadow-card;
+    z-index: $app-topbar-z;
+  }
+
+  .app-sidebar {
+    z-index: $app-sidebar-z;
+    width: $sidebar-width-mobile;
+    max-width: $sidebar-width-mobile;
+    transform: translateX(-100%);
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      transform 0.25s ease,
+      visibility 0.25s ease;
+
+    &--open {
+      transform: translateX(0);
+      visibility: visible;
+      pointer-events: auto;
+    }
+  }
+
+  .app-main {
+    margin-left: 0;
+    width: 100%;
+    max-width: none;
+    padding: calc(#{$app-topbar-height} + #{$space-lg}) $space-lg $space-2xl;
+  }
+}
+
+@include tablet-up {
+  .app-topbar {
+    display: none;
+  }
+
+  .app-sidebar {
+    transform: none;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-sidebar {
+    transition: none;
+  }
+
+  .app-topbar__burger-line {
+    transition: none;
+  }
+}
