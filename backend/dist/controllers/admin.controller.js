@@ -133,76 +133,8 @@ export async function refundPayment(req, res) {
         refundPaymentId: result.refundPaymentId,
     });
 }
-export async function getPromptTemplate(_req, res) {
-    const result = await adminService.getPromptTemplateConfig();
-    return res.status(200).json({
-        template: result.template,
-        defaultTemplate: result.defaultTemplate,
-    });
-}
-export async function updatePromptTemplate(req, res) {
-    const template = typeof req.body?.template === "string" ? req.body.template : "";
-    try {
-        const result = await adminService.updatePromptTemplateConfig(template);
-        return res.status(200).json({ template: result.template });
-    }
-    catch (error) {
-        const message = error instanceof Error
-            ? error.message
-            : "Failed to update prompt template";
-        return res.status(400).json({ error: message });
-    }
-}
-export async function resetPromptTemplate(_req, res) {
-    const result = await adminService.resetPromptTemplateConfig();
-    return res.status(200).json({ template: result.template });
-}
-export async function getChunkSummaryPromptTemplate(_req, res) {
-    const result = await adminService.getChunkSummaryPromptTemplateConfig();
-    return res.status(200).json({
-        template: result.template,
-        defaultTemplate: result.defaultTemplate,
-    });
-}
-export async function updateChunkSummaryPromptTemplate(req, res) {
-    const template = typeof req.body?.template === "string" ? req.body.template : "";
-    try {
-        const result = await adminService.updateChunkSummaryPromptTemplateConfig(template);
-        return res.status(200).json({ template: result.template });
-    }
-    catch (error) {
-        const message = error instanceof Error
-            ? error.message
-            : "Failed to update chunk summary prompt template";
-        return res.status(400).json({ error: message });
-    }
-}
-export async function resetChunkSummaryPromptTemplate(_req, res) {
-    const result = await adminService.resetChunkSummaryPromptTemplateConfig();
-    return res.status(200).json({ template: result.template });
-}
-export async function getGenerationSettings(_req, res) {
-    const result = await adminService.getGenerationSettingsConfig();
-    return res.status(200).json(result.settings);
-}
-export async function updateGenerationSettings(req, res) {
-    try {
-        const result = await adminService.updateGenerationSettingsConfig(req.body ?? {});
-        return res.status(200).json(result.settings);
-    }
-    catch (error) {
-        const message = error instanceof Error
-            ? error.message
-            : "Failed to update generation settings";
-        return res.status(400).json({ error: message });
-    }
-}
-export async function resetGenerationSettings(_req, res) {
-    const result = await adminService.resetGenerationSettingsConfig();
-    return res.status(200).json(result.settings);
-}
-export async function getTokenAnalytics(req, res) {
-    const result = await adminService.getTokenAnalytics({
+export async function getAiUsage(req, res) {
+    const result = await adminService.getAiUsage({
         days: req.query?.days,
         page: req.query?.page,
         pageSize: req.query?.pageSize,
@@ -212,7 +144,7 @@ export async function getTokenAnalytics(req, res) {
         userId: req.query?.userId,
         search: req.query?.search,
     });
-    return res.status(200).json(result.analytics);
+    return res.status(200).json(result.usage);
 }
 export async function getQualificationTemplate(req, res) {
     return qualificationController.getQualificationTemplate(req, res);
@@ -226,35 +158,27 @@ export async function listQualificationSubmissions(req, res) {
 export async function listFeedback(req, res) {
     return feedbackController.listFeedbackForAdmin(req, res);
 }
-export async function listQuizzes(req, res) {
+export async function listUserPairs(req, res) {
     const page = Math.max(1, Number(req.query?.page) || 1);
     const pageSize = Math.min(100, Math.max(1, Number(req.query?.pageSize) || 20));
-    const sortByRaw = typeof req.query?.sortBy === "string" ? req.query.sortBy : "createdAt";
-    const sortBy = ["createdAt", "status"].includes(sortByRaw)
+    const sortByRaw = typeof req.query?.sortBy === "string" ? req.query.sortBy : "nextReviewMs";
+    const sortBy = ["nextReviewMs", "pimsleurLevel"].includes(sortByRaw)
         ? sortByRaw
-        : "createdAt";
+        : "nextReviewMs";
     const sortOrderRaw = typeof req.query?.sortOrder === "string"
         ? req.query.sortOrder.toLowerCase()
         : "desc";
     const sortOrder = sortOrderRaw === "asc" ? "asc" : "desc";
-    const statusRaw = typeof req.query?.status === "string" ? req.query.status : "";
-    const status = statusRaw === "generating" ||
-        statusRaw === "ready_to_edit" ||
-        statusRaw === "published" ||
-        statusRaw === "failed"
-        ? statusRaw
-        : undefined;
     const searchRaw = typeof req.query?.search === "string" ? req.query.search.trim() : "";
     const search = searchRaw.length > 0 ? searchRaw : undefined;
-    const result = await adminService.listQuizzes({
+    const result = await adminService.listUserPairs({
         page,
         pageSize,
         sortBy,
         sortOrder,
-        status,
         search,
     });
     return res
         .status(200)
-        .json({ items: result.quizzes, pagination: result.pagination });
+        .json({ items: result.userPairs, pagination: result.pagination });
 }

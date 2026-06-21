@@ -1,7 +1,18 @@
 import * as tokenRepository from "../db/tokenRepository.js";
-import { getGenerationSettings } from "./generationSettings.service.js";
+const DEFAULT_SIGNUP_BONUS_TOKENS = 30;
+function getSignupBonusTokens() {
+    const raw = process.env.SIGNUP_BONUS_TOKENS?.trim();
+    if (!raw) {
+        return DEFAULT_SIGNUP_BONUS_TOKENS;
+    }
+    const parsed = Number(raw);
+    if (!Number.isInteger(parsed) || parsed < 0) {
+        return DEFAULT_SIGNUP_BONUS_TOKENS;
+    }
+    return parsed;
+}
 export async function grantSignupBonusTokens(userId) {
-    const { signupBonusTokens } = await getGenerationSettings();
+    const signupBonusTokens = getSignupBonusTokens();
     if (signupBonusTokens <= 0) {
         return;
     }

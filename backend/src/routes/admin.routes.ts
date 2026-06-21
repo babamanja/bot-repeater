@@ -15,28 +15,7 @@ router.post(
 );
 router.get("/payments", asyncHandler(adminController.listPayments));
 router.post("/payments/:paymentId/refund", asyncHandler(adminController.refundPayment));
-router.get("/prompt-template", asyncHandler(adminController.getPromptTemplate));
-router.put("/prompt-template", asyncHandler(adminController.updatePromptTemplate));
-router.post("/prompt-template/reset", asyncHandler(adminController.resetPromptTemplate));
-router.get(
-  "/chunk-summary-prompt-template",
-  asyncHandler(adminController.getChunkSummaryPromptTemplate),
-);
-router.put(
-  "/chunk-summary-prompt-template",
-  asyncHandler(adminController.updateChunkSummaryPromptTemplate),
-);
-router.post(
-  "/chunk-summary-prompt-template/reset",
-  asyncHandler(adminController.resetChunkSummaryPromptTemplate),
-);
-router.get("/generation-settings", asyncHandler(adminController.getGenerationSettings));
-router.put("/generation-settings", asyncHandler(adminController.updateGenerationSettings));
-router.post(
-  "/generation-settings/reset",
-  asyncHandler(adminController.resetGenerationSettings),
-);
-router.get("/token-analytics", asyncHandler(adminController.getTokenAnalytics));
+router.get("/ai-usage", asyncHandler(adminController.getAiUsage));
 router.get("/qualification-template", asyncHandler(adminController.getQualificationTemplate));
 router.put(
   "/qualification-template",
@@ -47,6 +26,6 @@ router.get(
   asyncHandler(adminController.listQualificationSubmissions),
 );
 router.get("/feedback", asyncHandler(adminController.listFeedback));
-router.get("/quizzes", asyncHandler(adminController.listQuizzes));
+router.get("/user-pairs", asyncHandler(adminController.listUserPairs));
 
 export default router;

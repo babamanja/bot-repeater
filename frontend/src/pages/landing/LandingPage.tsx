@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { Faq } from './components/Faq'
@@ -16,8 +16,6 @@ import type { AuthSession } from '../../types'
 import { homePathForRole } from '../../paths'
 import LegalDocumentModal from '../legal/LegalDocumentModal'
 import { LEGAL_QUERY_KEY, parseLegalDocumentId } from '../legal/legalQuery'
-
-type AuthPurpose = 'signup-check' | 'login-continue' | null
 
 export function LandingPage() {
   const navigate = useNavigate()
@@ -40,10 +38,7 @@ export function LandingPage() {
     )
   }, [setSearchParams])
 
-  const authPurposeRef = useRef<AuthPurpose>(null)
-
-  const openAuthModal = useCallback((mode: AuthMode, purpose: AuthPurpose = null) => {
-    authPurposeRef.current = purpose
+  const openAuthModal = useCallback((mode: AuthMode) => {
     setAuthModal({ open: true, mode })
   }, [])
 
@@ -51,30 +46,9 @@ export function LandingPage() {
     setAuthModal((state) => ({ ...state, open: false }))
   }, [])
 
-  const signupHandlerRef = useRef<((session: AuthSession) => Promise<void>) | null>(null)
-  const continueHandlerRef = useRef<((session: AuthSession) => Promise<void>) | null>(null)
-
-  const registerSignupHandler = useCallback((handler: (session: AuthSession) => Promise<void>) => {
-    signupHandlerRef.current = handler
-  }, [])
-
-  const registerContinueHandler = useCallback((handler: (session: AuthSession) => Promise<void>) => {
-    continueHandlerRef.current = handler
-  }, [])
-
   const handleLandingAuthSuccess = useCallback(
     async (session: AuthSession) => {
-      const purpose = authPurposeRef.current
-      authPurposeRef.current = null
       closeAuthModal()
-      if (purpose === 'signup-check') {
-        await signupHandlerRef.current?.(session)
-        return
-      }
-      if (purpose === 'login-continue') {
-        await continueHandlerRef.current?.(session)
-        return
-      }
       navigate(homePathForRole(session.user.role), { replace: true })
     },
     [closeAuthModal, navigate],
@@ -82,18 +56,16 @@ export function LandingPage() {
 
   return (
     <div className="landing">
-      <Header onOpenAuth={(mode) => openAuthModal(mode, null)} />
+      <Header onOpenAuth={(mode) => openAuthModal(mode)} />
       <main className="landing__main">
         <HeroSection
-          onRequireSignup={() => openAuthModal('signup', 'signup-check')}
-          onRequireLoginToContinue={() => openAuthModal('login', 'login-continue')}
-          registerSignupHandler={registerSignupHandler}
-          registerContinueHandler={registerContinueHandler}
+          onRequireSignup={() => openAuthModal('signup')}
+          onRequireLoginToContinue={() => openAuthModal('login')}
         />
         <PainSection />
         <BenefitsSection />
         <ProductHowItWorksSection />
-        <CtaSection onGetStarted={() => openAuthModal('signup', null)} />
+        <CtaSection onGetStarted={() => openAuthModal('signup')} />
         <PricingSection />
         <Faq />
       </main>

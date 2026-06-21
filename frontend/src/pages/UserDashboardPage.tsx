@@ -11,13 +11,6 @@ import { getStoredUser } from "../userStorage";
 
 import "./style.scss";
 
-function formatScorePercent(value: number | null, noScoreLabel: string): string {
-  if (value === null) {
-    return noScoreLabel;
-  }
-  return `${value}%`;
-}
-
 export default function UserDashboardPage() {
   const { t } = useTranslation();
   const user = getStoredUser();
@@ -46,8 +39,6 @@ export default function UserDashboardPage() {
     };
   }, [t]);
 
-  const noScoreLabel = t("dashboard.user.stats.noScore");
-
   return (
     <Page>
       <PageHeader
@@ -65,24 +56,8 @@ export default function UserDashboardPage() {
         ) : null}
         <ul className="stat-grid">
           <Card as="li" variant="stat">
-            <p className="card__stat-value">{stats?.quizzesGenerated ?? "—"}</p>
-            <p className="card__stat-label">{t("dashboard.user.stats.quizzesGenerated")}</p>
-          </Card>
-          <Card as="li" variant="stat">
-            <p className="card__stat-value">{stats?.quizzesCompleted ?? "—"}</p>
-            <p className="card__stat-label">{t("dashboard.user.stats.quizzesCompleted")}</p>
-          </Card>
-          <Card as="li" variant="stat">
-            <p className="card__stat-value">
-              {stats ? formatScorePercent(stats.averageScorePercent, noScoreLabel) : "—"}
-            </p>
-            <p className="card__stat-label">{t("dashboard.user.stats.averageScore")}</p>
-          </Card>
-          <Card as="li" variant="stat">
-            <p className="card__stat-value">
-              {stats ? formatScorePercent(stats.bestScorePercent, noScoreLabel) : "—"}
-            </p>
-            <p className="card__stat-label">{t("dashboard.user.stats.bestScore")}</p>
+            <p className="card__stat-value">{stats?.vocabPairCount ?? "—"}</p>
+            <p className="card__stat-label">{t("dashboard.user.stats.vocabPairCount")}</p>
           </Card>
         </ul>
       </PageSection>

@@ -96,119 +96,9 @@ type QualificationSubmittedProps = AnalyticsBaseProps & AnalyticsChannelDimensio
 
 type QualificationSkippedProps = AnalyticsBaseProps & AnalyticsChannelDimensions;
 
-type LandingDemoAnswerSelectedProps = AnalyticsBaseProps & {
-  question_id: string;
-  question_index?: number;
-};
-
-type LandingDemoCheckedProps = AnalyticsBaseProps & {
-  question_count: number;
-};
-
-type LandingDemoUploadStartedProps = AnalyticsBaseProps;
-
-type LandingDemoQuizGenerationStartedProps = AnalyticsBaseProps & {
-  quiz_id: string;
-  question_count: number;
-};
-
-type LandingDemoQuizReadyProps = AnalyticsBaseProps & {
-  quiz_id: string;
-  question_count: number;
-};
-
-type QuizGenerationStartedProps = AnalyticsBaseProps &
-  AnalyticsChannelDimensions & {
-    question_count: number;
-    estimated_tokens: number;
-    source: "upload" | "paste";
-    quiz_language?: string;
-  };
-
-type QuizGenerationSucceededProps = AnalyticsBaseProps &
-  AnalyticsChannelDimensions & {
-    quiz_id: string;
-    question_count: number;
-    estimated_tokens: number;
-    source: "upload" | "paste";
-    quiz_language?: string;
-  };
-
-type QuizGenerationFailedProps = AnalyticsBaseProps &
-  AnalyticsChannelDimensions & {
-    /** Stable code from `normalizeQuizAnalyticsReason` (not raw API/model text). */
-    reason?: string;
-    question_count: number;
-    estimated_tokens: number;
-    source: "upload" | "paste";
-  };
-
 type TokensInsufficientShownProps = AnalyticsBaseProps &
   AnalyticsChannelDimensions & {
     required_tokens?: number;
-  };
-
-type QuizEditOpenedProps = AnalyticsBaseProps &
-  AnalyticsChannelDimensions & {
-    quiz_id: string;
-  };
-
-type QuizEditChangedProps = AnalyticsBaseProps &
-  AnalyticsChannelDimensions & {
-    quiz_id: string;
-  };
-
-type QuizEditSaveOutcomeProps = AnalyticsBaseProps &
-  AnalyticsChannelDimensions & {
-    quiz_id: string;
-    /** Stable code from `normalizeQuizAnalyticsReason` where applicable. */
-    reason?: string;
-  };
-
-type QuizStartedProps = AnalyticsBaseProps &
-  AnalyticsChannelDimensions & {
-    quiz_id: string;
-    question_count: number;
-  };
-
-type QuizAnswerSelectedProps = AnalyticsBaseProps &
-  AnalyticsChannelDimensions & {
-    quiz_id: string;
-    question_id: string;
-  };
-
-type QuizSubmitConfirmedProps = AnalyticsBaseProps &
-  AnalyticsChannelDimensions & {
-    quiz_id: string;
-  };
-
-type QuizSubmitOutcomeProps = AnalyticsBaseProps &
-  AnalyticsChannelDimensions & {
-    quiz_id: string;
-    /** Stable code from `normalizeQuizAnalyticsReason` (not raw API text). */
-    reason?: string;
-    attempt_id?: string;
-  };
-
-type AttemptsListOpenedProps = AnalyticsBaseProps & AnalyticsChannelDimensions;
-
-/** Emitted via `trackPosthogAnalyticsEvent` only (not Meta). */
-type QuizListOpenedProps = AnalyticsBaseProps &
-  AnalyticsChannelDimensions & {
-    request_id: string;
-    quiz_count: number;
-  };
-
-type AttemptOpenedProps = AnalyticsBaseProps &
-  AnalyticsChannelDimensions & {
-    attempt_id: string;
-    quiz_id?: string;
-  };
-
-type AttemptRetakeClickedProps = AnalyticsBaseProps &
-  AnalyticsChannelDimensions & {
-    attempt_id: string;
-    quiz_id: string;
   };
 
 type CheckoutStartedProps = AnalyticsBaseProps &
@@ -265,28 +155,6 @@ type AdminTokensAdjustedProps = AnalyticsBaseProps &
   AnalyticsChannelDimensions & {
     admin_user_id: number;
     token_delta: number;
-  };
-
-type QuizDeleteStartedProps = AnalyticsBaseProps &
-  AnalyticsChannelDimensions & {
-    quiz_id: string;
-    flow: "delete";
-    result: "started";
-  };
-
-type QuizDeleteSucceededProps = AnalyticsBaseProps &
-  AnalyticsChannelDimensions & {
-    quiz_id: string;
-    flow: "delete";
-    result: "success";
-  };
-
-type QuizDeleteFailedProps = AnalyticsBaseProps &
-  AnalyticsChannelDimensions & {
-    quiz_id: string;
-    flow: "delete";
-    result: "failed";
-    reason: string;
   };
 
 type AdminRefundStartedProps = AnalyticsBaseProps &
@@ -348,31 +216,7 @@ export type AnalyticsEventMap = {
   qualification_answered: QualificationAnsweredProps;
   qualification_submitted: QualificationSubmittedProps;
   qualification_skipped: QualificationSkippedProps;
-  landing_demo_answer_selected: LandingDemoAnswerSelectedProps;
-  landing_demo_checked: LandingDemoCheckedProps;
-  landing_demo_upload_started: LandingDemoUploadStartedProps;
-  landing_demo_quiz_generation_started: LandingDemoQuizGenerationStartedProps;
-  landing_demo_quiz_ready: LandingDemoQuizReadyProps;
-  quiz_generation_started: QuizGenerationStartedProps;
-  quiz_generation_succeeded: QuizGenerationSucceededProps;
-  quiz_generation_failed: QuizGenerationFailedProps;
   tokens_insufficient_shown: TokensInsufficientShownProps;
-  quiz_edit_opened: QuizEditOpenedProps;
-  quiz_edit_changed: QuizEditChangedProps;
-  quiz_edit_saved: QuizEditSaveOutcomeProps;
-  quiz_edit_save_failed: QuizEditSaveOutcomeProps;
-  quiz_delete_started: QuizDeleteStartedProps;
-  quiz_delete_succeeded: QuizDeleteSucceededProps;
-  quiz_delete_failed: QuizDeleteFailedProps;
-  quiz_started: QuizStartedProps;
-  quiz_answer_selected: QuizAnswerSelectedProps;
-  quiz_submit_confirmed: QuizSubmitConfirmedProps;
-  quiz_submit_succeeded: QuizSubmitOutcomeProps;
-  quiz_submit_failed: QuizSubmitOutcomeProps;
-  quiz_list_opened: QuizListOpenedProps;
-  attempts_list_opened: AttemptsListOpenedProps;
-  attempt_opened: AttemptOpenedProps;
-  attempt_retake_clicked: AttemptRetakeClickedProps;
   checkout_started: CheckoutStartedProps;
   checkout_redirected: CheckoutRedirectedProps;
   checkout_completed: CheckoutCompletedProps;
@@ -396,8 +240,9 @@ export type AnalyticsEventMap = {
   admin_token_settings_saved: AdminTokenSettingsSavedProps;
   admin_token_settings_reset: AdminTokenSettingsResetProps;
   admin_token_analytics_opened: AdminPageOpenedProps;
+  admin_ai_usage_opened: AdminPageOpenedProps;
   admin_feedback_opened: AdminFeedbackOpenedProps;
-  admin_quizzes_opened: AdminPageOpenedProps;
+  admin_user_pairs_opened: AdminPageOpenedProps;
   admin_chunk_summary_prompt_saved: AdminChunkSummaryPromptSavedProps;
   admin_chunk_summary_prompt_reset: AdminChunkSummaryPromptResetProps;
   admin_premium_granted: AdminPremiumGrantedProps;

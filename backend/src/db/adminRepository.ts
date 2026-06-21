@@ -71,36 +71,13 @@ export type AppSettingRow = {
   value: unknown;
 };
 
-export type TokenAnalyticsDailyRow = {
-  date: string;
-  totalGenerations: number;
-  successfulGenerations: number;
-  failedGenerations: number;
-  estimatedTokens: number;
-  aiTotalTokens: number;
-};
-
-export type TokenAnalyticsTopModelRow = {
-  model: string;
-  generations: number;
-  aiTotalTokens: number;
-};
-
-export type TokenAnalyticsTopErrorRow = {
-  errorMessage: string;
-  occurrences: number;
-};
-
-export type TokenAnalyticsGenerationKind = "quiz" | "chunk_summary";
-
-export type TokenAnalyticsGenerationRow = {
+export type AiUsageRecordRow = {
   id: string;
-  kind: TokenAnalyticsGenerationKind;
+  feature: string;
   createdAt: string;
   userId: number | null;
   status: "success" | "failed";
   sourceTextLength: number;
-  generatedQuestionsCount: number;
   estimatedTokens: number;
   aiInputTokens: number | null;
   aiOutputTokens: number | null;
@@ -109,16 +86,11 @@ export type TokenAnalyticsGenerationRow = {
   errorMessage: string | null;
 };
 
-export type TokenAnalyticsGenerationsQuery = {
+export type AiUsageRecordsQuery = {
   days: number;
   page: number;
   pageSize: number;
-  sortBy:
-    | "createdAt"
-    | "aiTotalTokens"
-    | "estimatedTokens"
-    | "sourceTextLength"
-    | "generatedQuestionsCount";
+  sortBy: "createdAt" | "aiTotalTokens" | "estimatedTokens" | "sourceTextLength";
   sortOrder: "asc" | "desc";
   status?: "success" | "failed";
   userId?: number;
@@ -300,45 +272,9 @@ export async function upsertAppSetting(
   };
 }
 
-function scaleStoredAiTokensForDisplay(raw: bigint | number | null | undefined): number {
-  return Math.ceil(Number(raw ?? 0) / 1000);
-}
-
-function mapTokenAnalyticsGenerationRow(row: {
-  id: string;
-  kind: string;
-  created_at: Date;
-  user_id: number | null;
-  status: string;
-  source_text_length: number;
-  generated_questions_count: number;
-  estimated_tokens: number;
-  ai_input_tokens: number | null;
-  ai_output_tokens: number | null;
-  ai_total_tokens: number | null;
-  ai_model: string | null;
-  error_message: string | null;
-}): TokenAnalyticsGenerationRow {
-  return {
-    id: row.id,
-    kind: row.kind === "chunk_summary" ? "chunk_summary" : "quiz",
-    createdAt: row.created_at.toISOString(),
-    userId: row.user_id,
-    status: row.status === "failed" ? "failed" : "success",
-    sourceTextLength: row.source_text_length,
-    generatedQuestionsCount: row.generated_questions_count,
-    estimatedTokens: Number(row.estimated_tokens),
-    aiInputTokens: scaleStoredAiTokensForDisplay(row.ai_input_tokens),
-    aiOutputTokens: scaleStoredAiTokensForDisplay(row.ai_output_tokens),
-    aiTotalTokens: scaleStoredAiTokensForDisplay(row.ai_total_tokens),
-    aiModel: row.ai_model,
-    errorMessage: row.error_message,
-  };
-}
-
-export async function selectTokenAnalyticsGenerations(
-  input: TokenAnalyticsGenerationsQuery,
-): Promise<{ rows: TokenAnalyticsGenerationRow[]; total: number }> {
+export async function selectAiUsageRecords(
+  input: AiUsageRecordsQuery,
+): Promise<{ rows: AiUsageRecordRow[]; total: number }> {
   const whereClauses: Prisma.AiUsageAnalyticsWhereInput[] = [
     {
       createdAt: {
@@ -388,12 +324,11 @@ export async function selectTokenAnalyticsGenerations(
   return {
     rows: rows.map((row) => ({
       id: row.id,
-      kind: row.feature === "chunk_summary" ? "chunk_summary" : "quiz",
+      feature: row.feature,
       createdAt: row.createdAt.toISOString(),
       userId: row.userId,
       status: row.status === "failed" ? "failed" : "success",
       sourceTextLength: row.sourceTextLength,
-      generatedQuestionsCount: 0,
       estimatedTokens: row.estimatedTokens,
       aiInputTokens: row.aiInputTokens,
       aiOutputTokens: row.aiOutputTokens,
@@ -405,7 +340,7 @@ export async function selectTokenAnalyticsGenerations(
   };
 }
 
-export type AdminQuizRow = {
+export type AdminUserPairRow = {
   id: string;
   userId: number;
   userName: string | null;
@@ -415,18 +350,17 @@ export type AdminQuizRow = {
   nextReviewMs: string;
 };
 
-export type AdminQuizzesListQuery = {
+export type AdminUserPairsListQuery = {
   page: number;
   pageSize: number;
-  sortBy: "createdAt" | "status";
+  sortBy: "nextReviewMs" | "pimsleurLevel";
   sortOrder: "asc" | "desc";
-  status?: "generating" | "ready_to_edit" | "published" | "failed";
   search?: string;
 };
 
-export async function selectAdminQuizzes(
-  input: AdminQuizzesListQuery,
-): Promise<{ rows: AdminQuizRow[]; total: number }> {
+export async function selectAdminUserPairs(
+  input: AdminUserPairsListQuery,
+): Promise<{ rows: AdminUserPairRow[]; total: number }> {
   const where: Prisma.UserPairWhereInput = input.search
     ? {
         OR: [
@@ -445,9 +379,11 @@ export async function selectAdminQuizzes(
     : {};
 
   const orderBy =
-    input.sortOrder === "asc"
-      ? { nextReviewMs: "asc" as const }
-      : { nextReviewMs: "desc" as const };
+    input.sortBy === "pimsleurLevel"
+      ? { pimsleurLevel: input.sortOrder }
+      : input.sortOrder === "asc"
+        ? { nextReviewMs: "asc" as const }
+        : { nextReviewMs: "desc" as const };
 
   const [rows, total] = await Promise.all([
     getPrisma().userPair.findMany({

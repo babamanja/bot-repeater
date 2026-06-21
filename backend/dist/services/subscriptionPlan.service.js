@@ -1,5 +1,4 @@
 import * as subscriptionRepository from "../db/subscriptionRepository.js";
-import { getUploadMaxBytesForPlan, getUploadMaxTextCharsForPlan, } from "../config/uploadLimits.js";
 export function resolveEffectivePlanCode(subscription, now = new Date()) {
     if (subscription.planCode !== "premium") {
         return "basic";
@@ -44,10 +43,4 @@ export async function getEffectivePlanCodeForUser(userId) {
         return "basic";
     }
     return resolveEffectivePlanCode(subscription);
-}
-export async function getUploadMaxBytesForUser(userId) {
-    return getUploadMaxBytesForPlan(await getEffectivePlanCodeForUser(userId));
-}
-export async function getUploadMaxTextCharsForUser(userId) {
-    return getUploadMaxTextCharsForPlan(await getEffectivePlanCodeForUser(userId));
 }

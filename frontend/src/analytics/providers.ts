@@ -5,8 +5,8 @@ import { buildChannelPayload, mapToMetaPixelEvent } from "./mappings";
 import type { AnalyticsEventName, AnalyticsEventProps, Provider } from "./types";
 
 /** Events that must never be forwarded to Meta (PostHog-only product analytics). */
-function isPosthogOnlyEvent(event: AnalyticsEventName): boolean {
-  return event === "quiz_list_opened";
+function isPosthogOnlyEvent(_event: AnalyticsEventName): boolean {
+  return false;
 }
 
 declare global {
@@ -75,7 +75,7 @@ export type AnalyticsProvidersBundle = {
   providers: Provider[];
   /** Meta Pixel only (PostHog relies on autocapture for clicks). */
   trackToMeta: <T extends AnalyticsEventName>(event: T, props: AnalyticsEventProps<T>) => void;
-  /** PostHog only — use for events that must not hit Meta (e.g. `quiz_list_opened`). */
+  /** PostHog only — use for events that must not hit Meta. */
   trackPosthogOnly: <T extends AnalyticsEventName>(event: T, props: AnalyticsEventProps<T>) => void;
 };
 

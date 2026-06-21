@@ -2,23 +2,6 @@ import * as adminRepository from "../db/adminRepository.js";
 import * as paymentRepository from "../db/paymentRepository.js";
 import * as subscriptionRepository from "../db/subscriptionRepository.js";
 import * as tokenRepository from "../db/tokenRepository.js";
-import {
-  getDefaultPromptTemplate,
-  getPromptTemplate,
-  resetPromptTemplate,
-  updatePromptTemplate,
-} from "../data/promptTemplateStore.js";
-import {
-  getChunkSummaryPromptTemplate,
-  getDefaultChunkSummaryPromptTemplate,
-  resetChunkSummaryPromptTemplate,
-  updateChunkSummaryPromptTemplate,
-} from "../data/chunkSummaryPromptTemplateStore.js";
-import {
-  getGenerationSettings,
-  resetGenerationSettings,
-  updateGenerationSettings,
-} from "./generationSettings.service.js";
 
 export async function listUsers(input: adminRepository.AdminUsersListQuery) {
   const result = await adminRepository.selectAdminUsers(input);
@@ -181,7 +164,6 @@ export async function adjustUserTokensByAdmin(input: {
 }
 
 export async function listPayments(input: paymentRepository.PaymentsListQuery) {
-  // TODO: Add admin create-payment/refund endpoints and wire them to Stripe provider events.
   const result = await paymentRepository.selectPayments(input);
   return {
     ok: true as const,
@@ -257,72 +239,7 @@ export async function refundPaymentByAdmin(input: {
   }
 }
 
-export async function getPromptTemplateConfig() {
-  return {
-    ok: true as const,
-    template: getPromptTemplate(),
-    defaultTemplate: getDefaultPromptTemplate(),
-  };
-}
-
-export async function updatePromptTemplateConfig(template: string) {
-  return {
-    ok: true as const,
-    template: updatePromptTemplate(template),
-  };
-}
-
-export async function resetPromptTemplateConfig() {
-  return {
-    ok: true as const,
-    template: resetPromptTemplate(),
-  };
-}
-
-export async function getChunkSummaryPromptTemplateConfig() {
-  return {
-    ok: true as const,
-    template: getChunkSummaryPromptTemplate(),
-    defaultTemplate: getDefaultChunkSummaryPromptTemplate(),
-  };
-}
-
-export async function updateChunkSummaryPromptTemplateConfig(template: string) {
-  return {
-    ok: true as const,
-    template: updateChunkSummaryPromptTemplate(template),
-  };
-}
-
-export async function resetChunkSummaryPromptTemplateConfig() {
-  return {
-    ok: true as const,
-    template: resetChunkSummaryPromptTemplate(),
-  };
-}
-
-export async function getGenerationSettingsConfig() {
-  return {
-    ok: true as const,
-    settings: await getGenerationSettings(),
-  };
-}
-
-export async function updateGenerationSettingsConfig(settingsInput: unknown) {
-  return {
-    ok: true as const,
-    settings: await updateGenerationSettings(settingsInput),
-  };
-}
-
-export async function resetGenerationSettingsConfig() {
-  return {
-    ok: true as const,
-    settings: await resetGenerationSettings(),
-  };
-}
-
-export async function getTokenAnalytics(input: {
+export async function getAiUsage(input: {
   days?: unknown;
   page?: unknown;
   pageSize?: unknown;
@@ -348,8 +265,7 @@ export async function getTokenAnalytics(input: {
     sortByRaw === "createdAt" ||
     sortByRaw === "aiTotalTokens" ||
     sortByRaw === "estimatedTokens" ||
-    sortByRaw === "sourceTextLength" ||
-    sortByRaw === "generatedQuestionsCount"
+    sortByRaw === "sourceTextLength"
       ? sortByRaw
       : "createdAt";
   const sortOrderRaw = input.sortOrder;
@@ -369,7 +285,7 @@ export async function getTokenAnalytics(input: {
       ? searchRaw.trim()
       : undefined;
 
-  const generations = await adminRepository.selectTokenAnalyticsGenerations({
+  const generations = await adminRepository.selectAiUsageRecords({
     days,
     page,
     pageSize,
@@ -382,7 +298,7 @@ export async function getTokenAnalytics(input: {
 
   return {
     ok: true as const,
-    analytics: {
+    usage: {
       periodDays: days,
       items: generations.rows,
       pagination: {
@@ -395,11 +311,11 @@ export async function getTokenAnalytics(input: {
   };
 }
 
-export async function listQuizzes(input: adminRepository.AdminQuizzesListQuery) {
-  const result = await adminRepository.selectAdminQuizzes(input);
+export async function listUserPairs(input: adminRepository.AdminUserPairsListQuery) {
+  const result = await adminRepository.selectAdminUserPairs(input);
   return {
     ok: true as const,
-    quizzes: result.rows,
+    userPairs: result.rows,
     pagination: {
       page: input.page,
       pageSize: input.pageSize,

@@ -367,9 +367,13 @@ export default function AdminUserDetailsPage() {
     return <p className="upload-file__error">{t("admin.userDetailsNotFound")}</p>;
   }
 
-  const providers = `${user.providers.password ? "password" : ""}${
-    user.providers.password && user.providers.google ? " + " : ""
-  }${user.providers.google ? "google" : ""}`;
+  const providers = [
+    user.providers.password ? "password" : "",
+    user.providers.google ? "google" : "",
+    user.providers.telegram ? "telegram" : "",
+  ]
+    .filter(Boolean)
+    .join(" + ");
 
   const profileRows: FieldRow[] = [
     { id: "id", field: "ID", value: user.id },
@@ -399,14 +403,9 @@ export default function AdminUserDetailsPage() {
       value: user.tokenBalance,
     },
     {
-      id: "quizCount",
-      field: t("table.adminUsers.quizCount"),
-      value: user.quizCount,
-    },
-    {
-      id: "attemptCount",
-      field: t("table.adminUsers.attemptCount"),
-      value: user.attemptCount,
+      id: "vocabPairCount",
+      field: t("table.adminUsers.vocabPairCount"),
+      value: user.vocabPairCount,
     },
   ];
 

@@ -1,10 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import {
-  type AdminTokenAnalytics,
-  getAdminTokenAnalytics,
-} from "../../api/admin";
+import { type AdminAiUsage, getAdminAiUsage } from "../../api/admin";
 import Button from "../../components/UI/Button/Button";
 import Page from "../../components/UI/Page";
 import PageHeader from "../../components/UI/PageHeader";
@@ -17,14 +14,9 @@ import { formatRelativeTime } from "../../utils/convertTime";
 
 const PERIOD_OPTIONS = [7, 30, 90];
 
-type TokenAnalyticsItem = AdminTokenAnalytics["items"][number];
+type AiUsageItem = AdminAiUsage["items"][number];
 
-type SortBy =
-  | "createdAt"
-  | "aiTotalTokens"
-  | "estimatedTokens"
-  | "sourceTextLength"
-  | "generatedQuestionsCount";
+type SortBy = "createdAt" | "aiTotalTokens" | "estimatedTokens" | "sourceTextLength";
 
 export default function AdminTokenAnalyticsPage() {
   const { t } = useTranslation();
@@ -38,7 +30,7 @@ export default function AdminTokenAnalyticsPage() {
 
   const loadAnalytics = useCallback(
     () =>
-      getAdminTokenAnalytics({
+      getAdminAiUsage({
         days: periodDays,
         page,
         pageSize,
@@ -50,84 +42,78 @@ export default function AdminTokenAnalyticsPage() {
     [page, pageSize, periodDays, search, sortBy, sortOrder, status],
   );
 
-  const { data: analytics, error, isLoading } = useAdminPage({
+  const { data: usage, error, isLoading } = useAdminPage({
     load: loadAnalytics,
-    loadErrorMessage: t("admin.tokenAnalyticsLoadFailed"),
-    trackOpenEvent: "admin_token_analytics_opened",
+    loadErrorMessage: t("admin.aiUsageLoadFailed"),
+    trackOpenEvent: "admin_ai_usage_opened",
   });
 
-  const columns = useMemo<DataListColumn<TokenAnalyticsItem>[]>(
+  const columns = useMemo<DataListColumn<AiUsageItem>[]>(
     () => [
       {
-        id: "tokenAnalyticsGenerations.kind",
-        label: t("table.tokenAnalyticsGenerations.kind"),
+        id: "aiUsage.feature",
+        label: t("table.aiUsage.feature"),
         mobileRole: "summary-primary",
-        render: (row) => t(`table.tokenAnalyticsGenerationType.${row.kind}`),
+        render: (row) => row.feature,
       },
       {
-        id: "tokenAnalyticsGenerations.status",
-        label: t("table.tokenAnalyticsGenerations.status"),
+        id: "aiUsage.status",
+        label: t("table.aiUsage.status"),
         mobileRole: "summary-secondary",
         render: (row) => row.status,
       },
       {
-        id: "tokenAnalyticsGenerations.createdAt",
-        label: t("table.tokenAnalyticsGenerations.createdAt"),
+        id: "aiUsage.createdAt",
+        label: t("table.aiUsage.createdAt"),
         mobileRole: "detail",
         render: (row) => formatRelativeTime(row.createdAt),
       },
       {
-        id: "tokenAnalyticsGenerations.userId",
-        label: t("table.tokenAnalyticsGenerations.userId"),
+        id: "aiUsage.userId",
+        label: t("table.aiUsage.userId"),
         mobileRole: "detail",
         render: (row) => row.userId ?? "-",
       },
       {
-        id: "tokenAnalyticsGenerations.sourceTextLength",
-        label: t("table.tokenAnalyticsGenerations.sourceTextLength"),
+        id: "aiUsage.sourceTextLength",
+        label: t("table.aiUsage.sourceTextLength"),
         mobileRole: "detail",
         render: (row) => row.sourceTextLength,
       },
       {
-        id: "tokenAnalyticsGenerations.generatedQuestionsCount",
-        label: t("table.tokenAnalyticsGenerations.generatedQuestionsCount"),
-        mobileRole: "detail",
-        render: (row) => (row.kind === "chunk_summary" ? "-" : row.generatedQuestionsCount),
-      },
-      {
-        id: "tokenAnalyticsGenerations.estimatedTokens",
-        label: t("table.tokenAnalyticsGenerations.estimatedTokens"),
+        id: "aiUsage.estimatedTokens",
+        label: t("table.aiUsage.estimatedTokens"),
         mobileRole: "detail",
         render: (row) => row.estimatedTokens,
       },
       {
-        id: "tokenAnalyticsGenerations.aiInputTokens",
-        label: t("table.tokenAnalyticsGenerations.aiInputTokens"),
+        id: "aiUsage.aiInputTokens",
+        label: t("table.aiUsage.aiInputTokens"),
         mobileRole: "detail",
         render: (row) => row.aiInputTokens ?? "-",
       },
       {
-        id: "tokenAnalyticsGenerations.aiOutputTokens",
-        label: t("table.tokenAnalyticsGenerations.aiOutputTokens"),
+        id: "aiUsage.aiOutputTokens",
+        label: t("table.aiUsage.aiOutputTokens"),
         mobileRole: "detail",
         render: (row) => row.aiOutputTokens ?? "-",
       },
       {
-        id: "tokenAnalyticsGenerations.aiTotalTokens",
-        label: t("table.tokenAnalyticsGenerations.aiTotalTokens"),
+        id: "aiUsage.aiTotalTokens",
+        label: t("table.aiUsage.aiTotalTokens"),
         mobileRole: "detail",
         render: (row) => row.aiTotalTokens ?? "-",
       },
       {
-        id: "tokenAnalyticsGenerations.aiModel",
-        label: t("table.tokenAnalyticsGenerations.aiModel"),
+        id: "aiUsage.aiModel",
+        label: t("table.aiUsage.aiModel"),
         mobileRole: "detail",
         mobileWide: true,
         render: (row) => row.aiModel ?? "-",
       },
       {
-        id: "tokenAnalyticsGenerations.errorMessage",
-        label: t("table.tokenAnalyticsGenerations.errorMessage"),
+        id: "aiUsage.errorMessage",
+        label: t("table.aiUsage.errorMessage"),
         mobileRole: "detail",
         mobileWide: true,
         render: (row) => row.errorMessage ?? "-",
@@ -138,14 +124,11 @@ export default function AdminTokenAnalyticsPage() {
 
   return (
     <Page width="full">
-      <PageHeader
-        title={t("admin.tokenAnalyticsTitle")}
-        subtitle={t("admin.tokenAnalyticsDescription")}
-      />
+      <PageHeader title={t("admin.aiUsageTitle")} subtitle={t("admin.aiUsageDescription")} />
       <div className="page-toolbar">
-        <label htmlFor="token-analytics-period">{t("admin.tokenAnalyticsPeriod")}</label>
+        <label htmlFor="ai-usage-period">{t("admin.aiUsagePeriod")}</label>
         <select
-          id="token-analytics-period"
+          id="ai-usage-period"
           className="text-input"
           style={{ maxWidth: 160, marginBottom: 0 }}
           value={periodDays}
@@ -193,7 +176,6 @@ export default function AdminTokenAnalyticsPage() {
           <option value="aiTotalTokens">aiTotalTokens</option>
           <option value="estimatedTokens">estimatedTokens</option>
           <option value="sourceTextLength">sourceTextLength</option>
-          <option value="generatedQuestionsCount">generatedQuestionsCount</option>
         </select>
         <select
           className="text-input"
@@ -206,37 +188,33 @@ export default function AdminTokenAnalyticsPage() {
         </select>
       </div>
       {error && <p className="upload-file__error">{error}</p>}
-      {isLoading ? <p>{t("admin.tokenAnalyticsLoading")}</p> : null}
-      {!isLoading && analytics ? (
-        <PageSection title={t("admin.tokenAnalyticsGenerationsSection")} titleAs="h2" gap="lg">
-          <ResponsiveDataList
-            columns={columns}
-            data={analytics.items}
-            getRowKey={(row) => row.id}
-          />
+      {isLoading ? <p>{t("admin.aiUsageLoading")}</p> : null}
+      {!isLoading && usage ? (
+        <PageSection title={t("admin.aiUsageRecordsSection")} titleAs="h2" gap="lg">
+          <ResponsiveDataList columns={columns} data={usage.items} getRowKey={(row) => row.id} />
           <div
             className="admin-pagination"
             style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "12px" }}
           >
             <Button
               style="secondary"
-              disabled={analytics.pagination.page <= 1}
+              disabled={usage.pagination.page <= 1}
               onClick={() => setPage((prev) => prev - 1)}
             >
               {t("admin.prevPage")}
             </Button>
             <span>
-              {t("admin.page")} {analytics.pagination.page} / {analytics.pagination.totalPages}
+              {t("admin.page")} {usage.pagination.page} / {usage.pagination.totalPages}
             </span>
             <Button
               style="secondary"
-              disabled={analytics.pagination.page >= analytics.pagination.totalPages}
+              disabled={usage.pagination.page >= usage.pagination.totalPages}
               onClick={() => setPage((prev) => prev + 1)}
             >
               {t("admin.nextPage")}
             </Button>
             <span>
-              {t("admin.totalRows")}: {analytics.pagination.total}
+              {t("admin.totalRows")}: {usage.pagination.total}
             </span>
             <select
               className="text-input"

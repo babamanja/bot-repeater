@@ -24,9 +24,8 @@
     "adminPrompt": "Prompt",
     "adminQualification": "Qualification",
     "adminFeedback": "Feedback",
-    "adminTokenSettings": "Point settings",
-    "adminTokenAnalytics": "Point analytics",
-    "adminQuizzes": "Quizzes",
+    "adminUserPairs": "User pairs",
+    "adminAiUsage": "AI usage",
     "mainNavigation": "Main navigation",
     "menuOpen": "Open menu",
     "menuClose": "Close menu",
@@ -51,11 +50,7 @@
       "statsTitle": "Your activity",
       "statsLoadFailed": "Could not load stats",
       "stats": {
-        "quizzesGenerated": "Quizzes generated",
-        "quizzesCompleted": "Quizzes completed",
-        "averageScore": "Average score",
-        "bestScore": "Best score",
-        "noScore": "—"
+        "vocabPairCount": "Vocabulary pairs in progress"
       },
       "links": {
         "generate": {
@@ -109,17 +104,13 @@
           "title": "User feedback",
           "desc": "Read bug reports, feature requests, and other messages from users."
         },
-        "tokenSettings": {
-          "title": "Point settings",
-          "desc": "Configure point pricing and generation defaults."
+        "aiUsage": {
+          "title": "AI usage",
+          "desc": "Inspect AI feature usage and token consumption."
         },
-        "tokenAnalytics": {
-          "title": "Point analytics",
-          "desc": "Inspect point usage and costs."
-        },
-        "quizzes": {
-          "title": "Quizzes",
-          "desc": "Review quiz generation status and failure reasons."
+        "userPairs": {
+          "title": "User pairs",
+          "desc": "Review vocabulary pairs users are learning in the bot."
         }
       }
     }
@@ -532,31 +523,17 @@
     "generationSettingsReset": "Point settings reset to default.",
     "generationSettingsSaveFailed": "Could not save point settings",
     "generationSettingsLoadFailed": "Could not load point settings",
-    "quizzesTitle": "Admin: Quizzes",
-    "quizzesDescription": "All quizzes with generation status, owner, and failure details.",
-    "quizzesLoading": "Loading quizzes...",
-    "quizzesLoadFailed": "Could not load quizzes",
-    "quizzesSearchPlaceholder": "Quiz ID, user name, or email",
-    "tokenAnalyticsTitle": "Admin: Point Analytics",
-    "tokenAnalyticsDescription": "Usage analytics for quiz generations, chunk summarization, and model point consumption in one list.",
-    "tokenAnalyticsPeriod": "Period",
-    "tokenAnalyticsLoading": "Loading point analytics...",
-    "tokenAnalyticsLoadFailed": "Could not load point analytics",
-    "tokenAnalyticsSummarySection": "Summary",
-    "tokenAnalyticsGenerationsSection": "AI generations",
-    "tokenAnalyticsDailySection": "Daily stats",
-    "tokenAnalyticsModelsSection": "Top models",
-    "tokenAnalyticsErrorsSection": "Top errors",
-    "tokenAnalyticsTotalGenerations": "Total generations",
-    "tokenAnalyticsSuccessRate": "Success rate",
-    "tokenAnalyticsFailedGenerations": "Failed generations",
-    "tokenAnalyticsMockFallback": "Mock fallback count",
-    "tokenAnalyticsEstimatedTokens": "Estimated points (sum)",
-    "tokenAnalyticsAiTotalTokens": "AI total tokens (sum)",
-    "tokenAnalyticsAiInputTokens": "AI input tokens (sum)",
-    "tokenAnalyticsAiOutputTokens": "AI output tokens (sum)",
-    "tokenAnalyticsAvgTextLength": "Average source text length",
-    "tokenAnalyticsAvgQuestions": "Average generated questions",
+    "userPairsTitle": "Admin: User pairs",
+    "userPairsDescription": "Vocabulary pairs users are learning in the Telegram bot.",
+    "userPairsLoading": "Loading user pairs...",
+    "userPairsLoadFailed": "Could not load user pairs",
+    "userPairsSearchPlaceholder": "User name or email",
+    "aiUsageTitle": "Admin: AI usage",
+    "aiUsageDescription": "AI feature usage and token consumption from the analytics ledger.",
+    "aiUsagePeriod": "Period",
+    "aiUsageLoading": "Loading AI usage...",
+    "aiUsageLoadFailed": "Could not load AI usage",
+    "aiUsageRecordsSection": "Usage records",
     "chunkSizeCharsLabel": "Chunk size (characters)",
     "chunkSizeCharsHint": "Maximum characters per document chunk before splitting.",
     "chunkOverlapCharsLabel": "Chunk overlap (characters)",
@@ -830,8 +807,7 @@
       "email": "Email",
       "role": "Role",
       "providers": "Providers",
-      "quizCount": "Quizzes",
-      "attemptCount": "Attempts"
+      "vocabPairCount": "Vocab pairs"
     },
     "adminPayments": {
       "id": "Payment ID",
@@ -867,32 +843,20 @@
       "message": "Error message",
       "occurrences": "Occurrences"
     },
-    "tokenAnalyticsGenerationType": {
-      "quiz": "Quiz",
-      "chunk_summary": "Chunk summary"
-    },
-    "adminQuizzes": {
-      "id": "Quiz ID",
-      "title": "Title",
-      "status": "Status",
-      "createdAt": "Created at",
-      "createdBy": "User ID",
+    "adminUserPairs": {
+      "userId": "User ID",
       "userName": "User name",
       "email": "Email",
-      "generationQuestionCount": "Questions",
-      "generationTokensCharged": "Points charged",
-      "tokensRefundedAt": "Points refunded at",
-      "documentId": "Document ID",
-      "chunkIndex": "Chunk #",
-      "errorMessage": "Error message"
+      "vocabPairId": "Pair ID",
+      "pimsleurLevel": "Pimsleur level",
+      "nextReviewMs": "Next review (ms)"
     },
-    "tokenAnalyticsGenerations": {
+    "aiUsage": {
+      "feature": "Feature",
       "createdAt": "Created at",
-      "kind": "Type",
       "userId": "User ID",
       "status": "Status",
       "sourceTextLength": "Source text length",
-      "generatedQuestionsCount": "Generated questions",
       "estimatedTokens": "Estimated points",
       "aiInputTokens": "AI input tokens",
       "aiOutputTokens": "AI output tokens",

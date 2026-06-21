@@ -85,5 +85,3 @@ export function createRequestId(): string {
   }
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
-
-export { normalizeQuizAnalyticsReason, type QuizAnalyticsFailureKind } from "./normalizeQuizAnalyticsReason";

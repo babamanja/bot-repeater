@@ -117,8 +117,6 @@ export async function getUserDashboardStats(userId) {
         ok: true,
         stats: {
             vocabPairCount: stats,
-            quizCount: 0,
-            attemptCount: 0,
         },
     };
 }

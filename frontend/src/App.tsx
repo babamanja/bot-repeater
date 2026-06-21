@@ -10,12 +10,10 @@ import AccountDeletedPage from "./pages/AccountDeletedPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminFeedbackPage from "./pages/admin/AdminFeedbackPage";
 import AdminPaymentsPage from "./pages/admin/AdminPaymentsPage";
-import AdminPromptPage from "./pages/admin/AdminPromptPage";
 import AdminQualificationPage from "./pages/admin/AdminQualificationPage";
-import AdminQuizzesPage from "./pages/admin/AdminQuizzesPage";
 import AdminTokenAnalyticsPage from "./pages/admin/AdminTokenAnalyticsPage";
-import AdminTokenSettingsPage from "./pages/admin/AdminTokenSettingsPage";
 import AdminUserDetailsPage from "./pages/admin/AdminUserDetailsPage";
+import AdminUserPairsPage from "./pages/admin/AdminUserPairsPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AuthPage from "./pages/AuthPage";
 import LandingRoutePage from "./pages/landing/LandingRoutePage";
@@ -42,12 +40,12 @@ const ROUTES: ReadonlyArray<RouteConfig> = [
   { path: "/admin/users", element: <AdminUsersPage />, roles: ["admin"] },
   { path: "/admin/users/:userId", element: <AdminUserDetailsPage />, roles: ["admin"] },
   { path: "/admin/payments", element: <AdminPaymentsPage />, roles: ["admin"] },
-  { path: "/admin/prompt", element: <AdminPromptPage />, roles: ["admin"] },
   { path: "/admin/qualification", element: <AdminQualificationPage />, roles: ["admin"] },
   { path: "/admin/feedback", element: <AdminFeedbackPage />, roles: ["admin"] },
-  { path: "/admin/quizzes", element: <AdminQuizzesPage />, roles: ["admin"] },
-  { path: "/admin/token-settings", element: <AdminTokenSettingsPage />, roles: ["admin"] },
-  { path: "/admin/token-analytics", element: <AdminTokenAnalyticsPage />, roles: ["admin"] },
+  { path: "/admin/user-pairs", element: <AdminUserPairsPage />, roles: ["admin"] },
+  { path: "/admin/quizzes", element: <Navigate to="/admin/user-pairs" replace />, roles: ["admin"] },
+  { path: "/admin/ai-usage", element: <AdminTokenAnalyticsPage />, roles: ["admin"] },
+  { path: "/admin/token-analytics", element: <Navigate to="/admin/ai-usage" replace />, roles: ["admin"] },
   { path: "/my-subscription", element: <MySubscriptionPage />, roles: ["user"] },
   { path: "/payment/checkout", element: <PaymentCheckoutPage />, roles: ["user"] },
   { path: "/payment/success", element: <PaymentResultPage outcome="success" />, roles: ["user"] },

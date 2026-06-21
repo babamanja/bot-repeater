@@ -5,7 +5,6 @@ import * as subscriptionRepository from "../db/subscriptionRepository.js";
 import * as userRepository from "../db/userRepository.js";
 import { getPrisma } from "../db/prisma.js";
 
-export const LANDING_DEMO_QUESTION_COUNT = 10;
 const GUEST_EMAIL_DOMAIN = "guest.vocabbot.local";
 
 export async function createGuestUser() {
@@ -27,25 +26,6 @@ export async function createGuestUser() {
 
 export async function isGuestUser(userId: number): Promise<boolean> {
   return userRepository.isGuestUser(userId);
-}
-
-export function clampGuestSourceText(text: string, isGuest: boolean): string {
-  if (!isGuest) {
-    return text;
-  }
-  const maxChars = 10_000;
-  return text.length <= maxChars ? text : text.slice(0, maxChars);
-}
-
-export async function resolveGuestQuestionCount(
-  userId: number,
-  requestedCount?: number,
-): Promise<number> {
-  const guest = await isGuestUser(userId);
-  if (guest) {
-    return LANDING_DEMO_QUESTION_COUNT;
-  }
-  return requestedCount ?? LANDING_DEMO_QUESTION_COUNT;
 }
 
 async function emailTakenByAnotherUser(email: string, excludeUserId: number): Promise<boolean> {

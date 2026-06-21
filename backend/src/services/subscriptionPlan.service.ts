@@ -3,10 +3,6 @@ import type {
   SubscriptionRow,
 } from "../db/subscriptionRepository.js";
 import * as subscriptionRepository from "../db/subscriptionRepository.js";
-import {
-  getUploadMaxBytesForPlan,
-  getUploadMaxTextCharsForPlan,
-} from "../config/uploadLimits.js";
 
 export type SubscriptionView = SubscriptionRow & {
   effectivePlanCode: SubscriptionPlanCode;
@@ -81,12 +77,4 @@ export async function getEffectivePlanCodeForUser(
     return "basic";
   }
   return resolveEffectivePlanCode(subscription);
-}
-
-export async function getUploadMaxBytesForUser(userId: number): Promise<number> {
-  return getUploadMaxBytesForPlan(await getEffectivePlanCodeForUser(userId));
-}
-
-export async function getUploadMaxTextCharsForUser(userId: number): Promise<number> {
-  return getUploadMaxTextCharsForPlan(await getEffectivePlanCodeForUser(userId));
 }

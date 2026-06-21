@@ -11,32 +11,5 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["node"]
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "scripts/**/*.d.ts"],
-  "exclude": [
-    "src/routes/quiz.routes.ts",
-    "src/routes/document.routes.ts",
-    "src/routes/attempts.routes.ts",
-    "src/routes/file.routes.ts",
-    "src/controllers/quiz.controller.ts",
-    "src/controllers/document.controller.ts",
-    "src/controllers/attempt.controller.ts",
-    "src/controllers/file.controller.ts",
-    "src/services/quiz*.ts",
-    "src/services/document*.ts",
-    "src/services/attempt.service.ts",
-    "src/services/file.service.ts",
-    "src/services/pdf*.ts",
-    "src/services/ai*.ts",
-    "src/services/ocr*.ts",
-    "src/services/guest.service.ts",
-    "src/services/landingQuizClaim.service.ts",
-    "src/services/internalJobChain.service.ts",
-    "src/services/uploadProfile.service.ts",
-    "src/db/quizRepository.ts",
-    "src/db/documentRepository.ts",
-    "src/db/attemptRepository.ts",
-    "src/db/pdfOcrJobRepository.ts",
-    "src/db/quizGenerationAnalyticsRepository.ts",
-    "src/db/userDashboardRepository.ts"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "scripts/**/*.d.ts"]
 }

@@ -1,30 +1,42 @@
 import { apiClient } from "./_api";
 
+export type PaginationMeta = {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+};
+
+export type PaginatedResponse<T> = {
+  items: T[];
+  pagination: PaginationMeta;
+};
+
 export type AdminUser = {
   id: number;
   userName: string;
-  email: string;
+  email: string | null;
   role: "user" | "admin";
   providers: {
     password: boolean;
     google: boolean;
+    telegram: boolean;
   };
-  quizCount: number;
-  attemptCount: number;
+  vocabPairCount: number;
 };
 
 export type AdminUserDetails = {
   id: number;
   userName: string;
-  email: string;
+  email: string | null;
   role: "user" | "admin";
   providers: {
     password: boolean;
     google: boolean;
+    telegram: boolean;
   };
   tokenBalance: number;
-  quizCount: number;
-  attemptCount: number;
+  vocabPairCount: number;
   subscription: {
     id: string;
     planCode: "basic" | "premium";
@@ -72,9 +84,34 @@ export type AdminPayment = {
   updatedAt: string;
 };
 
-export type AdminPromptTemplate = {
-  template: string;
-  defaultTemplate: string;
+export type AdminAiUsage = {
+  periodDays: number;
+  items: Array<{
+    id: string;
+    feature: string;
+    createdAt: string;
+    userId: number | null;
+    status: "success" | "failed";
+    sourceTextLength: number;
+    estimatedTokens: number;
+    aiInputTokens: number | null;
+    aiOutputTokens: number | null;
+    aiTotalTokens: number | null;
+    aiModel: string | null;
+    errorMessage: string | null;
+  }>;
+  pagination: PaginationMeta;
+};
+
+export type AdminAiUsageQuery = {
+  days?: number;
+  page?: number;
+  pageSize?: number;
+  sortBy?: "createdAt" | "aiTotalTokens" | "estimatedTokens" | "sourceTextLength";
+  sortOrder?: "asc" | "desc";
+  status?: "success" | "failed";
+  userId?: number;
+  search?: string;
 };
 
 export type AdminQualificationTemplate = {
@@ -106,70 +143,6 @@ export type AdminQualificationSubmissionsQuery = {
   status?: "completed" | "skipped";
 };
 
-export type QuizGenerationSettings = {
-  tokensPerChar: number;
-  tokensPerQuestion: number;
-  questionsPerChunk: number;
-  minQuestions: number;
-  maxQuestions: number;
-  defaultQuestions: number;
-  chunkSizeChars: number;
-  chunkOverlapChars: number;
-  tokensPerChunkSummary: number;
-  tokensPerOcrImage: number;
-  signupBonusTokens: number;
-};
-
-export type AdminTokenAnalyticsGenerationKind = "quiz" | "chunk_summary";
-
-export type AdminTokenAnalytics = {
-  periodDays: number;
-  items: Array<{
-    id: string;
-    kind: AdminTokenAnalyticsGenerationKind;
-    createdAt: string;
-    userId: number | null;
-    status: "success" | "failed";
-    sourceTextLength: number;
-    generatedQuestionsCount: number;
-    estimatedTokens: number;
-    aiInputTokens: number | null;
-    aiOutputTokens: number | null;
-    aiTotalTokens: number | null;
-    aiModel: string | null;
-    errorMessage: string | null;
-  }>;
-  pagination: PaginationMeta;
-};
-
-export type AdminTokenAnalyticsQuery = {
-  days?: number;
-  page?: number;
-  pageSize?: number;
-  sortBy?:
-    | "createdAt"
-    | "aiTotalTokens"
-    | "estimatedTokens"
-    | "sourceTextLength"
-    | "generatedQuestionsCount";
-  sortOrder?: "asc" | "desc";
-  status?: "success" | "failed";
-  userId?: number;
-  search?: string;
-};
-
-export type PaginationMeta = {
-  page: number;
-  pageSize: number;
-  total: number;
-  totalPages: number;
-};
-
-export type PaginatedResponse<T> = {
-  items: T[];
-  pagination: PaginationMeta;
-};
-
 export type AdminUsersQuery = {
   page?: number;
   pageSize?: number;
@@ -187,6 +160,41 @@ export type AdminPaymentsQuery = {
   status?: "pending" | "succeeded" | "failed" | "refunded";
   transactionType?: "payment" | "refund";
   search?: string;
+};
+
+export type AdminUserPair = {
+  id: string;
+  userId: number;
+  userName: string | null;
+  email: string | null;
+  vocabPairId: number;
+  pimsleurLevel: number;
+  nextReviewMs: string;
+};
+
+export type AdminUserPairsQuery = {
+  page?: number;
+  pageSize?: number;
+  sortBy?: "nextReviewMs" | "pimsleurLevel";
+  sortOrder?: "asc" | "desc";
+  search?: string;
+};
+
+export type AdminFeedbackItem = {
+  id: string;
+  userId: number;
+  userName: string;
+  email: string;
+  category: "bug" | "feature" | "question" | "other";
+  message: string;
+  createdAt: string;
+};
+
+export type AdminFeedbackQuery = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  category?: "bug" | "feature" | "question" | "other";
 };
 
 export async function getAdminUsers(
@@ -249,71 +257,10 @@ export async function refundAdminPayment(
   return data;
 }
 
-export async function getAdminPromptTemplate(): Promise<AdminPromptTemplate> {
-  const { data } = await apiClient.get<AdminPromptTemplate>("/admin/prompt-template");
-  return data;
-}
-
-export async function updateAdminPromptTemplate(template: string): Promise<{ template: string }> {
-  const { data } = await apiClient.put<{ template: string }>("/admin/prompt-template", {
-    template,
-  });
-  return data;
-}
-
-export async function resetAdminPromptTemplate(): Promise<{ template: string }> {
-  const { data } = await apiClient.post<{ template: string }>("/admin/prompt-template/reset");
-  return data;
-}
-
-export async function getAdminChunkSummaryPromptTemplate(): Promise<AdminPromptTemplate> {
-  const { data } = await apiClient.get<AdminPromptTemplate>(
-    "/admin/chunk-summary-prompt-template",
-  );
-  return data;
-}
-
-export async function updateAdminChunkSummaryPromptTemplate(
-  template: string,
-): Promise<{ template: string }> {
-  const { data } = await apiClient.put<{ template: string }>(
-    "/admin/chunk-summary-prompt-template",
-    { template },
-  );
-  return data;
-}
-
-export async function resetAdminChunkSummaryPromptTemplate(): Promise<{ template: string }> {
-  const { data } = await apiClient.post<{ template: string }>(
-    "/admin/chunk-summary-prompt-template/reset",
-  );
-  return data;
-}
-
-export async function getAdminGenerationSettings(): Promise<QuizGenerationSettings> {
-  const { data } = await apiClient.get<QuizGenerationSettings>("/admin/generation-settings");
-  return data;
-}
-
-export async function updateAdminGenerationSettings(
-  settings: QuizGenerationSettings,
-): Promise<QuizGenerationSettings> {
-  const { data } = await apiClient.put<QuizGenerationSettings>(
-    "/admin/generation-settings",
-    settings,
-  );
-  return data;
-}
-
-export async function resetAdminGenerationSettings(): Promise<QuizGenerationSettings> {
-  const { data } = await apiClient.post<QuizGenerationSettings>("/admin/generation-settings/reset");
-  return data;
-}
-
-export async function getAdminTokenAnalytics(
-  query: AdminTokenAnalyticsQuery = {},
-): Promise<AdminTokenAnalytics> {
-  const { data } = await apiClient.get<AdminTokenAnalytics>("/admin/token-analytics", {
+export async function getAdminAiUsage(
+  query: AdminAiUsageQuery = {},
+): Promise<AdminAiUsage> {
+  const { data } = await apiClient.get<AdminAiUsage>("/admin/ai-usage", {
     params: query,
   });
   return data;
@@ -343,23 +290,6 @@ export async function getAdminQualificationSubmissions(
   return data;
 }
 
-export type AdminFeedbackItem = {
-  id: string;
-  userId: number;
-  userName: string;
-  email: string;
-  category: "bug" | "feature" | "question" | "other";
-  message: string;
-  createdAt: string;
-};
-
-export type AdminFeedbackQuery = {
-  page?: number;
-  pageSize?: number;
-  search?: string;
-  category?: "bug" | "feature" | "question" | "other";
-};
-
 export async function getAdminFeedback(
   query: AdminFeedbackQuery = {},
 ): Promise<PaginatedResponse<AdminFeedbackItem>> {
@@ -370,35 +300,10 @@ export async function getAdminFeedback(
   return data;
 }
 
-export type AdminQuiz = {
-  id: string;
-  title: string;
-  status: "generating" | "ready_to_edit" | "published" | "failed";
-  createdAt: string;
-  createdBy: number | null;
-  userName: string | null;
-  email: string | null;
-  errorMessage: string | null;
-  generationQuestionCount: number | null;
-  generationTokensCharged: number | null;
-  tokensRefundedAt: string | null;
-  documentId: string | null;
-  chunkIndex: number | null;
-};
-
-export type AdminQuizzesQuery = {
-  page?: number;
-  pageSize?: number;
-  sortBy?: "createdAt" | "status";
-  sortOrder?: "asc" | "desc";
-  status?: "generating" | "ready_to_edit" | "published" | "failed";
-  search?: string;
-};
-
-export async function getAdminQuizzes(
-  query: AdminQuizzesQuery = {},
-): Promise<PaginatedResponse<AdminQuiz>> {
-  const { data } = await apiClient.get<PaginatedResponse<AdminQuiz>>("/admin/quizzes", {
+export async function getAdminUserPairs(
+  query: AdminUserPairsQuery = {},
+): Promise<PaginatedResponse<AdminUserPair>> {
+  const { data } = await apiClient.get<PaginatedResponse<AdminUserPair>>("/admin/user-pairs", {
     params: query,
   });
   return data;

@@ -96,10 +96,8 @@ test("POST /api/auth/logout clears session cookie", async () => {
   assert.match(cookieHeader, /aiTutorRefreshToken=/);
 });
 
-test("POST /api/quiz/generate without Authorization returns 401", async () => {
+test("GET /api/users/me/dashboard-stats without Authorization returns 401", async () => {
   const app = createApp();
-  const res = await request(app)
-    .post("/api/quiz/generate")
-    .send({ text: "Sample quiz source text for generation." });
+  const res = await request(app).get("/api/users/me/dashboard-stats");
   assert.equal(res.status, 401);
 });

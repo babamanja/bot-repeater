@@ -152,27 +152,7 @@ export async function upsertAppSetting(key, value) {
         value: row.value,
     };
 }
-function scaleStoredAiTokensForDisplay(raw) {
-    return Math.ceil(Number(raw ?? 0) / 1000);
-}
-function mapTokenAnalyticsGenerationRow(row) {
-    return {
-        id: row.id,
-        kind: row.kind === "chunk_summary" ? "chunk_summary" : "quiz",
-        createdAt: row.created_at.toISOString(),
-        userId: row.user_id,
-        status: row.status === "failed" ? "failed" : "success",
-        sourceTextLength: row.source_text_length,
-        generatedQuestionsCount: row.generated_questions_count,
-        estimatedTokens: Number(row.estimated_tokens),
-        aiInputTokens: scaleStoredAiTokensForDisplay(row.ai_input_tokens),
-        aiOutputTokens: scaleStoredAiTokensForDisplay(row.ai_output_tokens),
-        aiTotalTokens: scaleStoredAiTokensForDisplay(row.ai_total_tokens),
-        aiModel: row.ai_model,
-        errorMessage: row.error_message,
-    };
-}
-export async function selectTokenAnalyticsGenerations(input) {
+export async function selectAiUsageRecords(input) {
     const whereClauses = [
         {
             createdAt: {
@@ -215,12 +195,11 @@ export async function selectTokenAnalyticsGenerations(input) {
     return {
         rows: rows.map((row) => ({
             id: row.id,
-            kind: row.feature === "chunk_summary" ? "chunk_summary" : "quiz",
+            feature: row.feature,
             createdAt: row.createdAt.toISOString(),
             userId: row.userId,
             status: row.status === "failed" ? "failed" : "success",
             sourceTextLength: row.sourceTextLength,
-            generatedQuestionsCount: 0,
             estimatedTokens: row.estimatedTokens,
             aiInputTokens: row.aiInputTokens,
             aiOutputTokens: row.aiOutputTokens,
@@ -231,7 +210,7 @@ export async function selectTokenAnalyticsGenerations(input) {
         total,
     };
 }
-export async function selectAdminQuizzes(input) {
+export async function selectAdminUserPairs(input) {
     const where = input.search
         ? {
             OR: [
@@ -248,9 +227,11 @@ export async function selectAdminQuizzes(input) {
             ],
         }
         : {};
-    const orderBy = input.sortOrder === "asc"
-        ? { nextReviewMs: "asc" }
-        : { nextReviewMs: "desc" };
+    const orderBy = input.sortBy === "pimsleurLevel"
+        ? { pimsleurLevel: input.sortOrder }
+        : input.sortOrder === "asc"
+            ? { nextReviewMs: "asc" }
+            : { nextReviewMs: "desc" };
     const [rows, total] = await Promise.all([
         getPrisma().userPair.findMany({
             where,

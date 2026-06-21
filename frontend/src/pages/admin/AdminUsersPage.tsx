@@ -80,20 +80,20 @@ export default function AdminUsersPage() {
         label: t("table.adminUsers.providers"),
         mobileRole: "detail",
         mobileWide: true,
-        render: (user) =>
-          `${user.providers.password ? "password" : ""}${user.providers.password && user.providers.google ? " + " : ""}${user.providers.google ? "google" : ""}`,
+        render: (user) => {
+          const parts = [
+            user.providers.password ? "password" : "",
+            user.providers.google ? "google" : "",
+            user.providers.telegram ? "telegram" : "",
+          ].filter(Boolean);
+          return parts.length > 0 ? parts.join(" + ") : "—";
+        },
       },
       {
-        id: "adminUsers.quizCount",
-        label: t("table.adminUsers.quizCount"),
+        id: "adminUsers.vocabPairCount",
+        label: t("table.adminUsers.vocabPairCount"),
         mobileRole: "detail",
-        render: (user) => user.quizCount,
-      },
-      {
-        id: "adminUsers.attemptCount",
-        label: t("table.adminUsers.attemptCount"),
-        mobileRole: "detail",
-        render: (user) => user.attemptCount,
+        render: (user) => user.vocabPairCount,
       },
     ],
     [t],

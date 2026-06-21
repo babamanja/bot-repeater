@@ -25,20 +25,8 @@ export function trackLogMessage(event: string): string {
       if (event.startsWith("qualification_")) {
         return `Qualification (${event})`;
       }
-      if (event.startsWith("quiz_generation") || event.startsWith("tokens_insufficient")) {
-        return `Quiz generation (${event})`;
-      }
-      if (event.startsWith("quiz_edit_")) {
-        return `Quiz edit (${event})`;
-      }
-      if (event.startsWith("quiz_list")) {
-        return `Quiz list (${event})`;
-      }
-      if (event.startsWith("quiz_submit") || event === "quiz_started" || event === "quiz_answer_selected") {
-        return `Quiz session (${event})`;
-      }
-      if (event.startsWith("attempt")) {
-        return `Attempts (${event})`;
+      if (event.startsWith("tokens_insufficient")) {
+        return `Tokens (${event})`;
       }
       if (event.startsWith("checkout_") || event === "subscription_opened" || event === "billing_history_opened") {
         return `Billing (${event})`;

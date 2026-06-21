@@ -30,12 +30,10 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
   { to: "/admin/dashboard", labelKey: "nav.adminDashboard", end: true },
   { to: "/admin/users", labelKey: "nav.adminUsers" },
   { to: "/admin/payments", labelKey: "nav.adminPayments" },
-  { to: "/admin/prompt", labelKey: "nav.adminPrompt" },
   { to: "/admin/qualification", labelKey: "nav.adminQualification" },
   { to: "/admin/feedback", labelKey: "nav.adminFeedback" },
-  { to: "/admin/quizzes", labelKey: "nav.adminQuizzes" },
-  { to: "/admin/token-settings", labelKey: "nav.adminTokenSettings" },
-  { to: "/admin/token-analytics", labelKey: "nav.adminTokenAnalytics" },
+  { to: "/admin/user-pairs", labelKey: "nav.adminUserPairs" },
+  { to: "/admin/ai-usage", labelKey: "nav.adminAiUsage" },
 ];
 
 export default function AppLayout() {

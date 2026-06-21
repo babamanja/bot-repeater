@@ -15,13 +15,11 @@ type AdminDashboardLink = {
 
 const LINKS: AdminDashboardLink[] = [
   { to: "/admin/users", titleKey: "dashboard.admin.links.users.title", descKey: "dashboard.admin.links.users.desc" },
-  { to: "/admin/quizzes", titleKey: "dashboard.admin.links.quizzes.title", descKey: "dashboard.admin.links.quizzes.desc" },
+  { to: "/admin/user-pairs", titleKey: "dashboard.admin.links.userPairs.title", descKey: "dashboard.admin.links.userPairs.desc" },
   { to: "/admin/payments", titleKey: "dashboard.admin.links.payments.title", descKey: "dashboard.admin.links.payments.desc" },
-  { to: "/admin/prompt", titleKey: "dashboard.admin.links.prompt.title", descKey: "dashboard.admin.links.prompt.desc" },
   { to: "/admin/qualification", titleKey: "dashboard.admin.links.qualification.title", descKey: "dashboard.admin.links.qualification.desc" },
   { to: "/admin/feedback", titleKey: "dashboard.admin.links.feedback.title", descKey: "dashboard.admin.links.feedback.desc" },
-  { to: "/admin/token-settings", titleKey: "dashboard.admin.links.tokenSettings.title", descKey: "dashboard.admin.links.tokenSettings.desc" },
-  { to: "/admin/token-analytics", titleKey: "dashboard.admin.links.tokenAnalytics.title", descKey: "dashboard.admin.links.tokenAnalytics.desc" },
+  { to: "/admin/ai-usage", titleKey: "dashboard.admin.links.aiUsage.title", descKey: "dashboard.admin.links.aiUsage.desc" },
 ];
 
 export default function AdminDashboardPage() {

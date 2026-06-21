@@ -130,8 +130,6 @@ export async function getUserDashboardStats(userId: number) {
     ok: true as const,
     stats: {
       vocabPairCount: stats,
-      quizCount: 0,
-      attemptCount: 0,
     },
   };
 }

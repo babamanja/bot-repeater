@@ -162,68 +162,6 @@ export async function adjustTokensForUser(input: {
   return result;
 }
 
-const QUIZ_GENERATION_REFUND_IDEMPOTENCY_PREFIX = "quiz-generation-refund:";
-const DOCUMENT_SUMMARIZATION_REFUND_IDEMPOTENCY_PREFIX =
-  "document-summarization-refund:";
-const OCR_IMAGE_REFUND_IDEMPOTENCY_PREFIX = "ocr-image-refund:";
-const PDF_OCR_JOB_REFUND_IDEMPOTENCY_PREFIX = "pdf-ocr-job-refund:";
-
-export function quizGenerationRefundIdempotencyKey(quizId: string): string {
-  return `${QUIZ_GENERATION_REFUND_IDEMPOTENCY_PREFIX}${quizId}`;
-}
-
-export function documentSummarizationRefundIdempotencyKey(
-  documentId: string,
-  reason: string,
-): string {
-  return `${DOCUMENT_SUMMARIZATION_REFUND_IDEMPOTENCY_PREFIX}${documentId}:${reason}`;
-}
-
-export function ocrImageRefundIdempotencyKey(
-  requestId: string,
-  reason: string,
-): string {
-  return `${OCR_IMAGE_REFUND_IDEMPOTENCY_PREFIX}${requestId}:${reason}`;
-}
-
-export function pdfOcrJobRefundIdempotencyKey(
-  jobId: string,
-  reason: string,
-): string {
-  return `${PDF_OCR_JOB_REFUND_IDEMPOTENCY_PREFIX}${jobId}:${reason}`;
-}
-
-export async function selectQuizGenerationSpendAmount(
-  userId: number,
-  quizId: string,
-): Promise<number | null> {
-  const entry = await getPrisma().tokenLedgerEntry.findFirst({
-    where: {
-      userId,
-      referenceId: quizId,
-      transactionType: "spend",
-    },
-    orderBy: { createdAt: "desc" },
-    select: { delta: true },
-  });
-  if (!entry) {
-    return null;
-  }
-  const spent = Number(-entry.delta);
-  return Number.isInteger(spent) && spent > 0 ? spent : null;
-}
-
-export async function hasQuizGenerationRefund(
-  userId: number,
-  quizId: string,
-): Promise<boolean> {
-  const entry = await getPrisma().tokenLedgerEntry.findUnique({
-    where: { idempotencyKey: quizGenerationRefundIdempotencyKey(quizId) },
-    select: { id: true },
-  });
-  return Boolean(entry);
-}
-
 export async function spendTokensAllowNegative(input: {
   userId: number;
   amount: number;

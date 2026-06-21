@@ -1,21 +1,11 @@
 import { useTranslation } from 'react-i18next'
 
-import type { AuthSession } from '../../../types'
-import { HeroLandingQuiz } from '../components/HeroLandingQuiz'
-
 type HeroSectionProps = {
   onRequireSignup: () => void
   onRequireLoginToContinue: () => void
-  registerSignupHandler: (handler: (session: AuthSession) => Promise<void>) => void
-  registerContinueHandler: (handler: (session: AuthSession) => Promise<void>) => void
 }
 
-export function HeroSection({
-  onRequireSignup,
-  onRequireLoginToContinue,
-  registerSignupHandler,
-  registerContinueHandler,
-}: HeroSectionProps) {
+export function HeroSection({ onRequireSignup, onRequireLoginToContinue }: HeroSectionProps) {
   const { t } = useTranslation()
 
   return (
@@ -29,6 +19,18 @@ export function HeroSection({
             <p className="qb-lead">{t('landing.hero.subtitle')}</p>
           </div>
           <p className="qb-persona">{t('landing.hero.persona')}</p>
+          <div className="qb-hero__cta">
+            <button type="button" className="qb-button qb-button--primary" onClick={onRequireSignup}>
+              {t('landing.hero.cta')}
+            </button>
+            <button
+              type="button"
+              className="qb-button qb-button--secondary"
+              onClick={onRequireLoginToContinue}
+            >
+              {t('auth.logIn')}
+            </button>
+          </div>
         </div>
         <div
           className="qb-hero__visual"
@@ -36,17 +38,10 @@ export function HeroSection({
           aria-label={t('landing.hero.visualAriaLabel')}
         >
           <img
-              className="qb-hero__step-image"
-              src="/mascots/suggesting.png"
-              alt=""
-              loading="eager"
-              decoding="async"
-            />
-          <img
             className="qb-hero__step-image"
-            src="/answer.jpg"
+            src="/mascots/suggesting.png"
             alt=""
-            loading="lazy"
+            loading="eager"
             decoding="async"
           />
           <img
@@ -58,21 +53,6 @@ export function HeroSection({
           />
         </div>
       </div>
-      <section
-        className="qb-hero__step-images-wrapper"
-        aria-labelledby="hero-demo-title"
-      >
-        <h2 className="qb-hero__demo-title qb-heading--h2" id="hero-demo-title">
-          {t('landing.hero.demoTitle')}
-        </h2>
-        <HeroLandingQuiz
-          onRequireSignup={onRequireSignup}
-          onRequireLoginToContinue={onRequireLoginToContinue}
-          registerSignupHandler={registerSignupHandler}
-          registerContinueHandler={registerContinueHandler}
-        />
-      </section>
-      
     </section>
   )
 }

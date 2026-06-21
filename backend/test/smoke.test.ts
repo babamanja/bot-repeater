@@ -13,13 +13,6 @@ test("GET /api/health returns ok", async () => {
   assert.equal(res.body?.ok, true);
 });
 
-test("GET /api/quiz/:quizId/results without Authorization returns 401", async () => {
-  const app = createApp();
-  const quizId = "550e8400-e29b-41d4-a716-446655440000";
-  const res = await request(app).get(`/api/quiz/${quizId}/results`);
-  assert.equal(res.status, 401);
-});
-
 test("POST /api/subscriptions/provider/paddle/webhook without signature returns 400", async () => {
   const app = createApp();
   const res = await request(app)
@@ -27,12 +20,6 @@ test("POST /api/subscriptions/provider/paddle/webhook without signature returns 
     .set("Content-Type", "application/json")
     .send("{}");
   assert.equal(res.status, 400);
-});
-
-test("GET /api/attempts/list without Authorization returns 401", async () => {
-  const app = createApp();
-  const res = await request(app).get("/api/attempts/list");
-  assert.equal(res.status, 401);
 });
 
 test("GET /api/subscriptions/me without Authorization returns 401", async () => {
@@ -71,27 +58,4 @@ test("POST /api/auth/account/restore without credentials returns 400", async () 
   const app = createApp();
   const res = await request(app).post("/api/auth/account/restore").send({});
   assert.equal(res.status, 400);
-});
-
-test("DELETE /api/quiz/:quizId without Authorization returns 401", async () => {
-  const app = createApp();
-  const quizId = "550e8400-e29b-41d4-a716-446655440000";
-  const res = await request(app).delete(`/api/quiz/${quizId}`);
-  assert.equal(res.status, 401);
-});
-
-test("POST /api/documents without Authorization returns 401", async () => {
-  const app = createApp();
-  const res = await request(app).post("/api/documents").send({
-    sourceType: "text",
-    fullText: "hello",
-  });
-  assert.equal(res.status, 401);
-});
-
-test("DELETE /api/documents/:documentId without Authorization returns 401", async () => {
-  const app = createApp();
-  const documentId = "550e8400-e29b-41d4-a716-446655440000";
-  const res = await request(app).delete(`/api/documents/${documentId}`);
-  assert.equal(res.status, 401);
 });
