@@ -7,7 +7,7 @@ import { getMySubscription, type MySubscription } from "../../api/subscription";
 import { refreshMyTokenBalance, subscribeToMyTokenBalance } from "../../api/tokens";
 import { MEDIA_MOBILE } from "../../constants/breakpoints";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
-import { FEEDBACK_PATH, homePathForRole, QUIZ_CREATE_PATH } from "../../paths";
+import { FEEDBACK_PATH, homePathForRole, USER_HOME_PATH } from "../../paths";
 import { clearStoredSession, getStoredUser, subscribeToSession } from "../../userStorage";
 import Button from "../UI/Button/Button";
 
@@ -20,11 +20,7 @@ type NavItem = {
 };
 
 const USER_NAV_ITEMS: NavItem[] = [
-  { to: QUIZ_CREATE_PATH, labelKey: "nav.makeNewQuiz", end: true },
-  { to: "/documents", labelKey: "nav.myDocuments" },
-  { to: "/quiz-list", labelKey: "nav.myQuizzes" },
-  { to: "/attempts", labelKey: "nav.myAttempts" },
-  { to: "/my-subscription", labelKey: "nav.mySubscriptions" },
+  { to: USER_HOME_PATH, labelKey: "nav.mySubscriptions", end: true },
   { to: "/billing-history", labelKey: "nav.billing" },
   { to: "/profile", labelKey: "nav.profile" },
   { to: FEEDBACK_PATH, labelKey: "nav.feedback" },

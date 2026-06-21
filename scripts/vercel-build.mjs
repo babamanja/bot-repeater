@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 
 function run(label, args) {
@@ -11,9 +13,16 @@ function run(label, args) {
   }
 }
 
-// Backend must be compiled before api/index.ts runs on Vercel.
 run("shared", ["run", "build", "-w", "@vocab-bot/shared"]);
 run("backend", ["run", "build", "-w", "vocab-bot-backend"]);
-run("db:deploy", ["run", "db:deploy", "-w", "vocab-bot-backend"]);
+run("frontend", ["run", "build", "-w", "vocab-bot-frontend"]);
 
-// Frontend is built by @vercel/static-build (see vercel.json builds).
+const indexHtml = join(process.cwd(), "frontend", "dist", "index.html");
+if (!existsSync(indexHtml)) {
+  console.error("[vercel-build] frontend/dist/index.html was not produced");
+  process.exit(1);
+}
+console.log("[vercel-build] OK: frontend/dist/index.html");
+
+// Run last so a migration failure does not block the static bundle above.
+run("db:deploy", ["run", "db:deploy", "-w", "vocab-bot-backend"]);
