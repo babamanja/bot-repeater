@@ -7,7 +7,7 @@
 import { spawnSync } from "node:child_process";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadEnv } from "./loadEnv.mjs";
+
 const NPX_BIN = process.platform === "win32" ? "npx.cmd" : "npx";
 const USE_SHELL = process.platform === "win32";
 const BASELINE_MIGRATION = "20260621120000_init_vocab_bot";
@@ -16,7 +16,11 @@ const backendDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const isVercel = process.env.VERCEL === "1";
 const vercelEnv = process.env.VERCEL_ENV?.trim().toLowerCase() ?? "";
 
-if (!isVercel) {
+async function loadLocalEnvFiles() {
+  if (isVercel) {
+    return;
+  }
+  const { loadEnv } = await import("./loadEnv.mjs");
   loadEnv();
 }
 
@@ -160,6 +164,8 @@ function shouldSkip() {
 }
 
 async function main() {
+  await loadLocalEnvFiles();
+
   if (shouldSkip()) {
     return;
   }

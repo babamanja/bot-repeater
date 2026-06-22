@@ -52,3 +52,13 @@ test("api handler source imports serverless entry from backend/src", () => {
   assert.match(source, /from ["']\.\.\/backend\/src\/serverless\.js["']/);
   assert.doesNotMatch(source, /backend\/dist\//);
 });
+
+test("deploy-database.mjs does not statically import loadEnv.mjs", () => {
+  const source = readUtf8(resolve(backendRoot, "scripts/deploy-database.mjs"));
+  assert.doesNotMatch(
+    source,
+    /^\s*import\s+.*from\s+["']\.\/loadEnv\.mjs["']/m,
+    "static import breaks Vercel when loadEnv.mjs is omitted from the bundle",
+  );
+  assert.match(source, /import\(["']\.\/loadEnv\.mjs["']\)/);
+});
