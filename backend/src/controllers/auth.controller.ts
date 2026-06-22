@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 
 import * as authService from "../services/auth.service.js";
 import { trackAuthEvent } from "../services/analytics.service.js";
-import { isProd } from "../config/loadEnv.js";
+import { isProd } from "../config/appEnv.js";
 import { resolveOptionalAccessUserId } from "../utils/optionalAuth.js";
 import {
   getRequiredUserId,

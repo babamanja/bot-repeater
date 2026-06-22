@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import { loadEnv } from "./loadEnv.mjs";
 const NPX_BIN = process.platform === "win32" ? "npx.cmd" : "npx";
 const USE_SHELL = process.platform === "win32";
+const BASELINE_MIGRATION = "20260621120000_init_vocab_bot";
 
 const backendDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const isVercel = process.env.VERCEL === "1";
@@ -100,8 +101,8 @@ function logDatabaseTarget(databaseUrl) {
   }
 }
 
-function runMigrateDeploy() {
-  const result = spawnSync(NPX_BIN, ["prisma", "migrate", "deploy"], {
+function runPrismaMigrate(args) {
+  const result = spawnSync(NPX_BIN, ["prisma", "migrate", ...args], {
     stdio: "inherit",
     shell: USE_SHELL,
     env: process.env,
@@ -112,6 +113,14 @@ function runMigrateDeploy() {
     return 1;
   }
   return result.status ?? 1;
+}
+
+function runMigrateDeploy() {
+  return runPrismaMigrate(["deploy"]);
+}
+
+function runMigrateResolveRolledBack(migrationName) {
+  return runPrismaMigrate(["resolve", "--rolled-back", migrationName]);
 }
 
 async function verifyCoreTables() {
@@ -171,9 +180,16 @@ async function main() {
   logDatabaseTarget(databaseUrl);
 
   console.log("[db:deploy] Running prisma migrate deploy…");
-  const exitCode = runMigrateDeploy();
+  let exitCode = runMigrateDeploy();
   if (exitCode !== 0) {
-    process.exit(exitCode);
+    console.warn(
+      `[db:deploy] migrate deploy failed; resolving ${BASELINE_MIGRATION} as rolled back and retrying once…`,
+    );
+    runMigrateResolveRolledBack(BASELINE_MIGRATION);
+    exitCode = runMigrateDeploy();
+    if (exitCode !== 0) {
+      process.exit(exitCode);
+    }
   }
 
   await verifyCoreTables();

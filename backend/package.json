@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "node scripts/with-database-url.mjs migrate deploy && tsx watch src/index.ts",
     "start:prod": "node dist/index.js",
-    "build": "npm run build -w @vocab-bot/shared && prisma generate && tsc",
+    "clean": "node --input-type=module -e \"import { rmSync } from 'node:fs'; rmSync('dist',{recursive:true,force:true})\"",
+    "build": "npm run build -w @vocab-bot/shared && prisma generate && npm run clean && tsc",
     "start": "node dist/index.js",
     "test": "npm run test:smoke",
     "test:smoke": "tsx --test test/**/*.test.ts",
