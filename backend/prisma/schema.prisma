@@ -18,8 +18,6 @@ model User {
   role                     String    @default("user")
   deletedAt                DateTime? @map("deleted_at")
   emailVerifiedAt          DateTime? @map("email_verified_at")
-  /// Reserved for future AI features (token economy).
-  tokenBalance             BigInt    @default(0) @map("token_balance")
   qualificationCompletedAt DateTime? @map("qualification_completed_at")
   isGuest                  Boolean   @default(false) @map("is_guest")
   primaryLanguageId        Int?      @map("primary_language_id")
@@ -29,12 +27,12 @@ model User {
   auth                    Auth?
   subscription            Subscription?
   payments                Payment[]
-  tokenLedgerEntries      TokenLedgerEntry[]
   qualificationSubmission QualificationSubmission?
   feedbackEntries         UserFeedback[]
   aiUsageAnalytics        AiUsageAnalytics[]
   telegramLinkCodes       TelegramLinkCode[]
-  userPairs               UserPair[]
+  createdDictionaries     Dictionary[]     @relation("CreatedDictionaries")
+  userDictionaries        UserDictionary[]
   primaryLanguage         Language? @relation("PrimaryLanguage", fields: [primaryLanguageId], references: [id])
   learningLanguage        Language? @relation("LearningLanguage", fields: [learningLanguageId], references: [id])
 
@@ -53,33 +51,6 @@ model TelegramLinkCode {
 
   @@index([userId, createdAt(sort: Desc)])
   @@map("telegram_link_codes")
-}
-
-enum TokenTransactionType {
-  purchase
-  spend
-  refund
-  bonus
-  expire
-  admin_adjustment
-}
-
-model TokenLedgerEntry {
-  id              String               @id @default(uuid()) @db.Uuid
-  userId          Int                  @map("user_id")
-  delta           BigInt
-  balanceAfter    BigInt?              @map("balance_after")
-  transactionType TokenTransactionType @map("transaction_type")
-  referenceId     String?              @map("reference_id")
-  idempotencyKey  String?              @unique @map("idempotency_key")
-  metadata        Json?
-  createdAt       DateTime             @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, createdAt(sort: Desc)])
-  @@index([transactionType, createdAt(sort: Desc)])
-  @@map("token_ledger_entries")
 }
 
 enum PaymentTransactionType {
@@ -232,36 +203,96 @@ model VocabWord {
   languageId Int    @map("language_id")
   text       String @map("text")
 
-  language      Language    @relation("LanguageVocabWords", fields: [languageId], references: [id])
-  primaryPairs  VocabPair[] @relation("PrimaryWord")
-  learningPairs VocabPair[] @relation("LearningWord")
+  language   Language    @relation("LanguageVocabWords", fields: [languageId], references: [id])
+  pairsAsWordA VocabPair[] @relation("WordA")
+  pairsAsWordB VocabPair[] @relation("WordB")
 
   @@unique([languageId, text])
   @@map("vocab_words")
 }
 
 model VocabPair {
-  id             Int @id @default(autoincrement()) @map("id")
-  primaryWordId  Int @map("primary_word_id")
-  learningWordId Int @map("learning_word_id")
+  id                 Int  @id @default(autoincrement()) @map("id")
+  wordAId            Int  @map("word_a_id")
+  wordBId            Int  @map("word_b_id")
+  primaryLanguageId  Int? @map("primary_language_id")
+  learningLanguageId Int? @map("learning_language_id")
 
-  primaryWord  VocabWord  @relation("PrimaryWord", fields: [primaryWordId], references: [id])
-  learningWord VocabWord  @relation("LearningWord", fields: [learningWordId], references: [id])
-  userPairs    UserPair[]
+  wordA            VocabWord         @relation("WordA", fields: [wordAId], references: [id])
+  wordB            VocabWord         @relation("WordB", fields: [wordBId], references: [id])
+  dictionaryEntries DictionaryEntry[]
+  tags             VocabPairTag[]
 
-  @@unique([primaryWordId, learningWordId])
+  @@unique([wordAId, wordBId])
   @@map("vocab_pairs")
 }
 
-model UserPair {
-  userId        Int    @map("user_id")
-  vocabPairId   Int    @map("vocab_pair_id")
-  pimsleurLevel Int    @default(0) @map("pimsleur_level")
-  nextReviewMs  BigInt @map("next_review_ms") @db.BigInt
+model Tag {
+  id        Int      @id @default(autoincrement()) @map("id")
+  name      String   @unique @map("name")
+  parentId  Int?     @map("parent_id")
+  createdAt DateTime @default(now()) @map("created_at")
 
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  vocabPair VocabPair @relation(fields: [vocabPairId], references: [id])
+  parent     Tag?           @relation("TagHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children   Tag[]          @relation("TagHierarchy")
+  vocabPairs VocabPairTag[]
 
-  @@id([userId, vocabPairId])
-  @@map("user_pairs")
+  @@index([parentId])
+  @@map("tags")
+}
+
+model VocabPairTag {
+  vocabPairId Int      @map("vocab_pair_id")
+  tagId       Int      @map("tag_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  vocabPair VocabPair @relation(fields: [vocabPairId], references: [id], onDelete: Cascade)
+  tag       Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([vocabPairId, tagId])
+  @@index([tagId])
+  @@map("vocab_pair_tags")
+}
+
+model Dictionary {
+  id        Int      @id @default(autoincrement())
+  creatorId Int      @map("creator_id")
+  name      String   @default("My dictionary") @map("name")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  creator User              @relation("CreatedDictionaries", fields: [creatorId], references: [id], onDelete: Cascade)
+  entries DictionaryEntry[]
+  members UserDictionary[]
+
+  @@index([creatorId])
+  @@map("dictionaries")
+}
+
+model DictionaryEntry {
+  dictionaryId  Int      @map("dictionary_id")
+  vocabPairId   Int      @map("vocab_pair_id")
+  pimsleurLevel Int      @default(0) @map("pimsleur_level")
+  nextReviewMs  BigInt   @map("next_review_ms") @db.BigInt
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  dictionary Dictionary @relation(fields: [dictionaryId], references: [id], onDelete: Cascade)
+  vocabPair  VocabPair  @relation(fields: [vocabPairId], references: [id], onDelete: Cascade)
+
+  @@id([dictionaryId, vocabPairId])
+  @@index([dictionaryId, nextReviewMs])
+  @@map("dictionary_entries")
+}
+
+model UserDictionary {
+  userId       Int      @map("user_id")
+  dictionaryId Int      @map("dictionary_id")
+  isDefault    Boolean  @default(false) @map("is_default")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dictionary Dictionary @relation(fields: [dictionaryId], references: [id], onDelete: Cascade)
+
+  @@id([userId, dictionaryId])
+  @@index([userId, isDefault])
+  @@map("user_dictionaries")
 }

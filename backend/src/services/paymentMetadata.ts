@@ -1,6 +1,5 @@
 import * as paymentRepository from "../db/paymentRepository.js";
 import * as subscriptionRepository from "../db/subscriptionRepository.js";
-import { isTokenTopupAmount } from "../config/paddle.js";
 import type { SubscriptionBillingPeriod } from "../config/paddle.js";
 
 export function normalizeAppBaseUrl(appBaseUrl: string): string {
@@ -60,16 +59,6 @@ export function readBillingPeriod(
     return "yearly";
   }
   return "monthly";
-}
-
-export function readTokenTopupAmountFromMetadata(
-  metadata: Record<string, unknown> | null,
-): number | null {
-  const amount = Number(metadata?.tokenAmount);
-  if (!Number.isInteger(amount) || amount <= 0 || !isTokenTopupAmount(amount)) {
-    return null;
-  }
-  return amount;
 }
 
 export function readFailureReason(

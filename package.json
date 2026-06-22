@@ -12,6 +12,8 @@
     "dev:frontend": "npm run dev --prefix frontend",
     "dev:bot": "npm run dev --prefix bot",
     "dev:all": "npm run dev:backend & npm run dev:frontend & npm run dev:bot",
+    "db:migrate": "npm run db:migrate --prefix backend",
+    "db:generate": "npm run db:generate --prefix backend",
     "build:shared": "npm run build -w @vocab-bot/shared",
     "build:backend": "npm run build -w vocab-bot-backend",
     "build:frontend": "npm run build -w vocab-bot-frontend",

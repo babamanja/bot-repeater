@@ -69,16 +69,13 @@ export type SubscriptionBillingPeriod = "monthly" | "yearly";
 
 export async function createCheckoutSession(
   planCode: SubscriptionPlanCode,
-  checkoutType: "subscription" | "token_topup" = "subscription",
   options?: {
-    tokenAmount?: number;
     billingPeriod?: SubscriptionBillingPeriod;
   },
 ): Promise<CheckoutSession> {
   const { data } = await apiClient.post<CheckoutSession>("/subscriptions/checkout-session", {
     planCode,
-    checkoutType,
-    tokenAmount: options?.tokenAmount,
+    checkoutType: "subscription",
     billingPeriod: options?.billingPeriod,
     appBaseUrl: window.location.origin,
   });

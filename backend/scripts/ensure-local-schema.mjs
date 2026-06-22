@@ -65,8 +65,20 @@ function syncSchemaDrift() {
   }
 }
 
+function generateClient() {
+  console.log("[ensure-local-schema] Running prisma generate…");
+  return runPrisma(["generate"]);
+}
+
 let result = migrateDeploy(true);
 if (result.status === 0) {
+  const genResult = generateClient();
+  if (genResult.status !== 0) {
+    console.error(
+      "[ensure-local-schema] prisma generate failed. Stop the backend and run: npm run db:generate",
+    );
+    process.exit(genResult.status);
+  }
   console.log("[ensure-local-schema] Done.");
   process.exit(0);
 }
@@ -78,6 +90,13 @@ if (isP3005Error(result.output)) {
     process.exit(result.status);
   }
   syncSchemaDrift();
+  const genResult = generateClient();
+  if (genResult.status !== 0) {
+    console.error(
+      "[ensure-local-schema] prisma generate failed. Stop the backend and run: npm run db:generate",
+    );
+    process.exit(genResult.status);
+  }
   console.log("[ensure-local-schema] Done (baselined existing database).");
   process.exit(0);
 }

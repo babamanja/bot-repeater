@@ -35,7 +35,6 @@ export type AdminUserDetails = {
     google: boolean;
     telegram: boolean;
   };
-  tokenBalance: number;
   vocabPairCount: number;
   subscription: {
     id: string;
@@ -53,14 +52,6 @@ export type AdminUserDetails = {
     status: "pending" | "succeeded" | "failed" | "refunded";
     transactionType: "payment" | "refund";
     provider: string | null;
-  }>;
-  recentTokenLedger: Array<{
-    id: string;
-    delta: number;
-    balanceAfter: number | null;
-    transactionType: "purchase" | "spend" | "refund" | "bonus" | "expire" | "admin_adjustment";
-    referenceId: string | null;
-    createdAt: string;
   }>;
 };
 
@@ -146,7 +137,7 @@ export type AdminQualificationSubmissionsQuery = {
 export type AdminUsersQuery = {
   page?: number;
   pageSize?: number;
-  sortBy?: "id" | "userName" | "email" | "role" | "tokenBalance";
+  sortBy?: "id" | "userName" | "email" | "role";
   sortOrder?: "asc" | "desc";
   role?: "user" | "admin";
   search?: string;
@@ -208,17 +199,6 @@ export async function getAdminUsers(
 
 export async function getAdminUserDetails(userId: number): Promise<AdminUserDetails> {
   const { data } = await apiClient.get<AdminUserDetails>(`/admin/users/${userId}`);
-  return data;
-}
-
-export async function adjustAdminUserTokens(
-  userId: number,
-  payload: { delta: number; comment: string },
-): Promise<{ balance: number }> {
-  const { data } = await apiClient.post<{ balance: number }>(
-    `/admin/users/${userId}/tokens/adjust`,
-    payload,
-  );
   return data;
 }
 
@@ -307,4 +287,208 @@ export async function getAdminUserPairs(
     params: query,
   });
   return data;
+}
+
+export type AdminTag = {
+  id: number;
+  name: string;
+  parentId: number | null;
+  parentName: string | null;
+  createdAt: string;
+  childCount: number;
+  vocabPairCount: number;
+};
+
+export type AdminTagInput = {
+  name: string;
+  parentId: number | null;
+};
+
+export async function getAdminTags(): Promise<AdminTag[]> {
+  const { data } = await apiClient.get<{ items: AdminTag[] }>("/admin/tags");
+  return data.items;
+}
+
+export async function createAdminTag(payload: AdminTagInput): Promise<AdminTag> {
+  const { data } = await apiClient.post<AdminTag>("/admin/tags", payload);
+  return data;
+}
+
+export async function updateAdminTag(tagId: number, payload: Partial<AdminTagInput>): Promise<AdminTag> {
+  const { data } = await apiClient.patch<AdminTag>(`/admin/tags/${tagId}`, payload);
+  return data;
+}
+
+export async function deleteAdminTag(tagId: number): Promise<void> {
+  await apiClient.delete(`/admin/tags/${tagId}`);
+}
+
+export type AdminLanguage = {
+  id: number;
+  name: string;
+  vocabWordCount: number;
+  primaryUserCount: number;
+  learningUserCount: number;
+};
+
+export type AdminLanguageInput = {
+  name: string;
+};
+
+export async function getAdminLanguages(): Promise<AdminLanguage[]> {
+  const { data } = await apiClient.get<{ items: AdminLanguage[] }>("/admin/languages");
+  return data.items;
+}
+
+export async function createAdminLanguage(payload: AdminLanguageInput): Promise<AdminLanguage> {
+  const { data } = await apiClient.post<AdminLanguage>("/admin/languages", payload);
+  return data;
+}
+
+export async function updateAdminLanguage(
+  languageId: number,
+  payload: Partial<AdminLanguageInput>,
+): Promise<AdminLanguage> {
+  const { data } = await apiClient.patch<AdminLanguage>(
+    `/admin/languages/${languageId}`,
+    payload,
+  );
+  return data;
+}
+
+export async function deleteAdminLanguage(languageId: number): Promise<void> {
+  await apiClient.delete(`/admin/languages/${languageId}`);
+}
+
+export type AdminVocabWord = {
+  id: number;
+  text: string;
+  languageId: number;
+  languageName: string;
+  primaryPairCount: number;
+  learningPairCount: number;
+};
+
+export type AdminVocabWordsQuery = {
+  page?: number;
+  pageSize?: number;
+  sortBy?: "id" | "text" | "language";
+  sortOrder?: "asc" | "desc";
+  search?: string;
+  languageId?: number;
+};
+
+export async function getAdminVocabWords(
+  query: AdminVocabWordsQuery = {},
+): Promise<PaginatedResponse<AdminVocabWord>> {
+  const { data } = await apiClient.get<PaginatedResponse<AdminVocabWord>>("/admin/words", {
+    params: query,
+  });
+  return data;
+}
+
+export type AdminVocabWordInput = {
+  text: string;
+  languageId: number;
+};
+
+export async function createAdminVocabWord(payload: AdminVocabWordInput): Promise<AdminVocabWord> {
+  const { data } = await apiClient.post<AdminVocabWord>("/admin/words", payload);
+  return data;
+}
+
+export async function updateAdminVocabWord(
+  wordId: number,
+  payload: Partial<AdminVocabWordInput>,
+): Promise<AdminVocabWord> {
+  const { data } = await apiClient.patch<AdminVocabWord>(`/admin/words/${wordId}`, payload);
+  return data;
+}
+
+export async function deleteAdminVocabWord(wordId: number): Promise<void> {
+  await apiClient.delete(`/admin/words/${wordId}`);
+}
+
+export type AdminDictionary = {
+  id: number;
+  primaryWord: string;
+  primaryLanguage: string;
+  learningWord: string;
+  learningLanguage: string;
+  primaryLanguageId: number;
+  learningLanguageId: number;
+  userPairCount: number;
+  tagIds: number[];
+  tagNames: string[];
+};
+
+export type AdminDictionariesQuery = {
+  page?: number;
+  pageSize?: number;
+  sortBy?: "id" | "primaryWord" | "learningWord" | "userPairCount";
+  sortOrder?: "asc" | "desc";
+  search?: string;
+};
+
+export async function getAdminDictionaries(
+  query: AdminDictionariesQuery = {},
+): Promise<PaginatedResponse<AdminDictionary>> {
+  const { data } = await apiClient.get<PaginatedResponse<AdminDictionary>>("/admin/dictionaries", {
+    params: query,
+  });
+  return data;
+}
+
+export type AdminTranslation = AdminDictionary;
+
+export type AdminTranslationsQuery = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  primaryLanguageId?: number;
+  tagId?: number;
+};
+
+export type AdminTranslationInput = {
+  primaryLanguageId: number;
+  primaryText: string;
+  learningLanguageId: number;
+  learningText: string;
+  tagIds?: number[];
+};
+
+export async function getAdminTranslations(
+  query: AdminTranslationsQuery = {},
+): Promise<PaginatedResponse<AdminTranslation>> {
+  const { data } = await apiClient.get<PaginatedResponse<AdminTranslation>>("/admin/translations", {
+    params: query,
+  });
+  return data;
+}
+
+export async function getAdminTranslation(translationId: number): Promise<AdminTranslation> {
+  const { data } = await apiClient.get<AdminTranslation>(`/admin/translations/${translationId}`);
+  return data;
+}
+
+export async function createAdminTranslation(
+  payload: AdminTranslationInput,
+): Promise<AdminTranslation> {
+  const { data } = await apiClient.post<AdminTranslation>("/admin/translations", payload);
+  return data;
+}
+
+export async function updateAdminTranslation(
+  translationId: number,
+  payload: AdminTranslationInput,
+): Promise<AdminTranslation> {
+  const { data } = await apiClient.patch<AdminTranslation>(
+    `/admin/translations/${translationId}`,
+    payload,
+  );
+  return data;
+}
+
+export async function deleteAdminTranslation(translationId: number): Promise<void> {
+  await apiClient.delete(`/admin/translations/${translationId}`);
 }

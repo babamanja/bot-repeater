@@ -9,22 +9,29 @@ import AppLayout from "./components/Layout/AppLayout";
 import AccountDeletedPage from "./pages/AccountDeletedPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminFeedbackPage from "./pages/admin/AdminFeedbackPage";
+import AdminLanguagesPage from "./pages/admin/AdminLanguagesPage";
 import AdminPaymentsPage from "./pages/admin/AdminPaymentsPage";
 import AdminQualificationPage from "./pages/admin/AdminQualificationPage";
+import AdminTagsPage from "./pages/admin/AdminTagsPage";
+import AdminTranslationsPage from "./pages/admin/AdminTranslationsPage";
 import AdminTokenAnalyticsPage from "./pages/admin/AdminTokenAnalyticsPage";
 import AdminUserDetailsPage from "./pages/admin/AdminUserDetailsPage";
 import AdminUserPairsPage from "./pages/admin/AdminUserPairsPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminWordsPage from "./pages/admin/AdminWordsPage";
 import AuthPage from "./pages/AuthPage";
 import LandingRoutePage from "./pages/landing/LandingRoutePage";
 import NotFoundPage from "./pages/NotFoundPage";
 import BillingHistoryPage from "./pages/payments/BillingHistoryPage";
+import MyDictionariesPage from "./pages/MyDictionariesPage";
 import MySubscriptionPage from "./pages/payments/MySubscriptionPage";
 import PaymentCheckoutPage from "./pages/payments/PaymentCheckoutPage";
 import PaymentResultPage from "./pages/payments/PaymentResultPage";
 import PaymentReturnPage from "./pages/payments/PaymentReturnPage";
 import ProfilePage from "./pages/ProfilePage";
 import FeedbackPage from "./pages/FeedbackPage";
+import UserDashboardPage from "./pages/UserDashboardPage";
+import WordsPage from "./pages/WordsPage";
 import { homePathForRole } from "./paths";
 import { getSessionSnapshot, setStoredSession, subscribeToSession } from "./userStorage";
 
@@ -35,13 +42,18 @@ type RouteConfig = {
 };
 
 const ROUTES: ReadonlyArray<RouteConfig> = [
-  { path: "/dashboard", element: <Navigate to="/my-subscription" replace />, roles: ["user"] },
+  { path: "/dashboard", element: <UserDashboardPage />, roles: ["user"] },
   { path: "/admin/dashboard", element: <AdminDashboardPage />, roles: ["admin"] },
   { path: "/admin/users", element: <AdminUsersPage />, roles: ["admin"] },
   { path: "/admin/users/:userId", element: <AdminUserDetailsPage />, roles: ["admin"] },
   { path: "/admin/payments", element: <AdminPaymentsPage />, roles: ["admin"] },
   { path: "/admin/qualification", element: <AdminQualificationPage />, roles: ["admin"] },
   { path: "/admin/feedback", element: <AdminFeedbackPage />, roles: ["admin"] },
+  { path: "/admin/tags", element: <AdminTagsPage />, roles: ["admin"] },
+  { path: "/admin/languages", element: <AdminLanguagesPage />, roles: ["admin"] },
+  { path: "/admin/words", element: <AdminWordsPage />, roles: ["admin"] },
+  { path: "/admin/dictionaries", element: <Navigate to="/admin/translations" replace />, roles: ["admin"] },
+  { path: "/admin/translations", element: <AdminTranslationsPage />, roles: ["admin"] },
   { path: "/admin/user-pairs", element: <AdminUserPairsPage />, roles: ["admin"] },
   { path: "/admin/quizzes", element: <Navigate to="/admin/user-pairs" replace />, roles: ["admin"] },
   { path: "/admin/ai-usage", element: <AdminTokenAnalyticsPage />, roles: ["admin"] },
@@ -53,6 +65,8 @@ const ROUTES: ReadonlyArray<RouteConfig> = [
   { path: "/payment/canceled", element: <PaymentResultPage outcome="canceled" />, roles: ["user"] },
   { path: "/payment/pending", element: <PaymentResultPage outcome="pending" />, roles: ["user"] },
   { path: "/billing-history", element: <BillingHistoryPage />, roles: ["user"] },
+  { path: "/words", element: <WordsPage />, roles: ["user"] },
+  { path: "/dictionaries", element: <MyDictionariesPage />, roles: ["user"] },
   { path: "/profile", element: <ProfilePage />, roles: ["user"] },
   { path: "/feedback", element: <FeedbackPage />, roles: ["user"] },
   { path: "/payment", element: <PaymentReturnPage />, roles: ["user"] },

@@ -95,11 +95,7 @@ export async function createMyCheckoutSession(req: Request, res: Response) {
     return res.status(400).json({ error: "invalid planCode" });
   }
   const checkoutType = req.body?.checkoutType;
-  if (
-    checkoutType !== undefined &&
-    checkoutType !== "subscription" &&
-    checkoutType !== "token_topup"
-  ) {
+  if (checkoutType !== undefined && checkoutType !== "subscription") {
     return res.status(400).json({ error: "invalid checkoutType" });
   }
   const billingPeriod = req.body?.billingPeriod;
@@ -116,9 +112,7 @@ export async function createMyCheckoutSession(req: Request, res: Response) {
       userId,
       planCode,
       getAppBaseUrl(req),
-      checkoutType ?? "subscription",
-      req.body?.tokenAmount,
-      billingPeriod,
+      req.body?.billingPeriod,
     );
     return res.status(200).json(result.checkoutSession);
   } catch (error) {
@@ -128,8 +122,7 @@ export async function createMyCheckoutSession(req: Request, res: Response) {
         : "failed to create checkout session";
     const statusCode =
       message.includes("invalid planCode") ||
-      message.includes("invalid billingPeriod") ||
-      message.includes("unsupported tokenAmount")
+      message.includes("invalid billingPeriod")
         ? 400
         : 502;
     return res.status(statusCode).json({ error: message });

@@ -1,10 +1,18 @@
+import {
+  faBrain,
+  faMobileScreenButton,
+  faSeedling,
+  faTrophy,
+} from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useTranslation } from 'react-i18next'
 
 type ProductStep = {
   title: string
-  bullets: string[]
-  imagePlaceholder: string
+  description: string
 }
+
+const STEP_ICONS = [faMobileScreenButton, faBrain, faSeedling, faTrophy] as const
 
 export function ProductHowItWorksSection() {
   const { t } = useTranslation()
@@ -13,67 +21,29 @@ export function ProductHowItWorksSection() {
   }) as ProductStep[]
 
   return (
-    <section className="qb-section" id="how-it-works" aria-labelledby="product-title">
-      <div className="qb-section__head">
+    <section className="qb-section qb-how" id="how-it-works" aria-labelledby="product-title">
+      <div className="qb-section__head qb-section__head--center">
         <h2 className="qb-heading--h2" id="product-title">
           {t('landing.product.title')}
         </h2>
         <p className="qb-lead">{t('landing.product.subtitle')}</p>
       </div>
-      <div className="qb-product__grid">
+      <ol className="qb-how__steps">
         {steps.map((step, index) => (
-          <ProductStepBlock key={step.title} stepNumber={index + 1} step={step} />
+          <li key={step.title} className="qb-how__step">
+            <article aria-labelledby={`product-step-${index + 1}-title`}>
+              <span className="qb-how__step-icon" aria-hidden>
+                <FontAwesomeIcon icon={STEP_ICONS[index] ?? faMobileScreenButton} />
+              </span>
+              <span className="qb-how__step-num">{index + 1}</span>
+              <h3 className="qb-heading--h3" id={`product-step-${index + 1}-title`}>
+                {step.title}
+              </h3>
+              <p>{step.description}</p>
+            </article>
+          </li>
         ))}
-      </div>
+      </ol>
     </section>
-  )
-}
-
-function ProductStepBlock({
-  stepNumber,
-  step,
-}: {
-  stepNumber: number
-  step: ProductStep
-}) {
-  const headingId = `product-step-${stepNumber}-title`
-  // const firstTileImage = '/mascots/unsorted-docs.png'
-  const firstTileImage = '/mascots/unsorted-docs.png'
-  const secondTileImage = '/mascots/sort-docs.png'
-  const thirdTileImage = '/mascots/quizzing.png'
-  const fourthTileImage = '/mascots/editing.png'
-  const fifthTileImage = '/mascots/calendar.png'
-  const tileImages = [firstTileImage, secondTileImage, thirdTileImage, fourthTileImage, fifthTileImage]
-  const tileImage = tileImages[stepNumber - 1]
-
-  return (
-    <article className="qb-step" aria-labelledby={headingId}>
-      <p className="qb-step__num">{stepNumber}</p>
-      <h3 className="qb-heading--h3" id={headingId}>
-        {step.title}
-      </h3>
-      <ul>
-        {step.bullets.map((line) => (
-          <li key={line}>{line}</li>
-        ))}
-      </ul>
-      {tileImage ? (
-        <img
-          className="qb-step__image"
-          src={tileImage}
-          alt={step.imagePlaceholder}
-          loading="lazy"
-          decoding="async"
-        />
-      ) : (
-        <div
-          className="qb-placeholder"
-          role="img"
-          aria-label={step.imagePlaceholder}
-        >
-          {step.imagePlaceholder}
-        </div>
-      )}
-    </article>
   )
 }

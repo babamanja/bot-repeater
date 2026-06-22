@@ -2,6 +2,10 @@ import type { Request, Response } from "express";
 
 import { getRouteParam } from "../utils/routeParams.js";
 import * as adminService from "../services/admin.service.js";
+import * as languageService from "../services/language.service.js";
+import * as tagService from "../services/tag.service.js";
+import * as translationService from "../services/translation.service.js";
+import * as vocabWordService from "../services/vocabWord.service.js";
 import * as feedbackController from "./feedback.controller.js";
 import * as qualificationController from "./qualification.controller.js";
 import {
@@ -18,10 +22,8 @@ export async function listUsers(_req: Request, res: Response) {
   );
   const sortByRaw =
     typeof _req.query?.sortBy === "string" ? _req.query.sortBy : "id";
-  const sortBy = ["id", "userName", "email", "role", "tokenBalance"].includes(
-    sortByRaw,
-  )
-    ? (sortByRaw as "id" | "userName" | "email" | "role" | "tokenBalance")
+  const sortBy = ["id", "userName", "email", "role"].includes(sortByRaw)
+    ? (sortByRaw as "id" | "userName" | "email" | "role")
     : "id";
   const sortOrderRaw =
     typeof _req.query?.sortOrder === "string"
@@ -75,29 +77,6 @@ export async function grantPremiumSubscription(req: Request, res: Response) {
     return sendServiceFailure(res, result);
   }
   return res.status(200).json({ subscription: result.subscription });
-}
-
-export async function adjustUserTokens(req: Request, res: Response) {
-  const userId = Number(req.params?.userId);
-  if (!Number.isInteger(userId) || userId < 1) {
-    return res.status(400).json({ error: "invalid user id" });
-  }
-  const adminUserId = getRequiredUserId(req);
-  if (adminUserId === null) {
-    return sendUnauthorized(res);
-  }
-
-  const result = await adminService.adjustUserTokensByAdmin({
-    userId,
-    adminUserId,
-    delta: req.body?.delta,
-    comment: req.body?.comment,
-  });
-
-  if (result.ok === false) {
-    return sendServiceFailure(res, result);
-  }
-  return res.status(200).json({ balance: result.balance });
 }
 
 export async function listPayments(_req: Request, res: Response) {
@@ -234,4 +213,285 @@ export async function listUserPairs(req: Request, res: Response) {
   return res
     .status(200)
     .json({ items: result.userPairs, pagination: result.pagination });
+}
+
+export async function listVocabWords(req: Request, res: Response) {
+  const page = Math.max(1, Number(req.query?.page) || 1);
+  const pageSize = Math.min(
+    100,
+    Math.max(1, Number(req.query?.pageSize) || 20),
+  );
+  const sortByRaw = typeof req.query?.sortBy === "string" ? req.query.sortBy : "id";
+  const sortBy = ["id", "text", "language"].includes(sortByRaw)
+    ? (sortByRaw as "id" | "text" | "language")
+    : "id";
+  const sortOrderRaw =
+    typeof req.query?.sortOrder === "string"
+      ? req.query.sortOrder.toLowerCase()
+      : "asc";
+  const sortOrder = sortOrderRaw === "desc" ? "desc" : "asc";
+  const searchRaw =
+    typeof req.query?.search === "string" ? req.query.search.trim() : "";
+  const search = searchRaw.length > 0 ? searchRaw : undefined;
+  const languageIdRaw = Number(req.query?.languageId);
+  const languageId =
+    Number.isInteger(languageIdRaw) && languageIdRaw > 0 ? languageIdRaw : undefined;
+
+  const result = await adminService.listVocabWords({
+    page,
+    pageSize,
+    sortBy,
+    sortOrder,
+    search,
+    languageId,
+  });
+  return res
+    .status(200)
+    .json({ items: result.words, pagination: result.pagination });
+}
+
+export async function createVocabWord(req: Request, res: Response) {
+  const body = req.body ?? {};
+  const result = await vocabWordService.createVocabWord({
+    text: body.text,
+    languageId: body.languageId,
+  });
+  if (result.ok === false) {
+    return sendServiceFailure(res, result);
+  }
+  return res.status(201).json(result.word);
+}
+
+export async function updateVocabWord(req: Request, res: Response) {
+  const wordId = Number(req.params?.wordId);
+  if (!Number.isInteger(wordId) || wordId < 1) {
+    return res.status(400).json({ error: "invalid word id" });
+  }
+  const body = req.body ?? {};
+  const result = await vocabWordService.updateVocabWord(wordId, {
+    text: body.text,
+    languageId: body.languageId,
+  });
+  if (result.ok === false) {
+    return sendServiceFailure(res, result);
+  }
+  return res.status(200).json(result.word);
+}
+
+export async function deleteVocabWord(req: Request, res: Response) {
+  const wordId = Number(req.params?.wordId);
+  if (!Number.isInteger(wordId) || wordId < 1) {
+    return res.status(400).json({ error: "invalid word id" });
+  }
+  const result = await vocabWordService.deleteVocabWord(wordId);
+  if (result.ok === false) {
+    return sendServiceFailure(res, result);
+  }
+  return res.status(204).send();
+}
+
+export async function listDictionaries(req: Request, res: Response) {
+  const page = Math.max(1, Number(req.query?.page) || 1);
+  const pageSize = Math.min(
+    100,
+    Math.max(1, Number(req.query?.pageSize) || 20),
+  );
+  const sortByRaw = typeof req.query?.sortBy === "string" ? req.query.sortBy : "id";
+  const sortBy = ["id", "primaryWord", "learningWord", "userPairCount"].includes(sortByRaw)
+    ? (sortByRaw as "id" | "primaryWord" | "learningWord" | "userPairCount")
+    : "id";
+  const sortOrderRaw =
+    typeof req.query?.sortOrder === "string"
+      ? req.query.sortOrder.toLowerCase()
+      : "asc";
+  const sortOrder = sortOrderRaw === "desc" ? "desc" : "asc";
+  const searchRaw =
+    typeof req.query?.search === "string" ? req.query.search.trim() : "";
+  const search = searchRaw.length > 0 ? searchRaw : undefined;
+
+  const result = await adminService.listDictionaries({
+    page,
+    pageSize,
+    sortBy,
+    sortOrder,
+    search,
+  });
+  return res
+    .status(200)
+    .json({ items: result.dictionaries, pagination: result.pagination });
+}
+
+export async function listTranslations(req: Request, res: Response) {
+  const page = Math.max(1, Number(req.query?.page) || 1);
+  const pageSize = Math.min(
+    100,
+    Math.max(1, Number(req.query?.pageSize) || 20),
+  );
+  const searchRaw =
+    typeof req.query?.search === "string" ? req.query.search.trim() : "";
+  const search = searchRaw.length > 0 ? searchRaw : undefined;
+
+  const primaryLanguageIdRaw = Number(req.query?.primaryLanguageId);
+  const primaryLanguageId =
+    Number.isInteger(primaryLanguageIdRaw) && primaryLanguageIdRaw > 0
+      ? primaryLanguageIdRaw
+      : undefined;
+
+  const tagIdRaw = Number(req.query?.tagId);
+  const tagId = Number.isInteger(tagIdRaw) && tagIdRaw > 0 ? tagIdRaw : undefined;
+
+  const result = await adminService.listDictionaries({
+    page,
+    pageSize,
+    sortBy: "id",
+    sortOrder: "asc",
+    search,
+    primaryLanguageId,
+    tagId,
+  });
+  return res
+    .status(200)
+    .json({ items: result.dictionaries, pagination: result.pagination });
+}
+
+export async function getTranslation(req: Request, res: Response) {
+  const translationId = Number(req.params?.translationId);
+  if (!Number.isInteger(translationId) || translationId < 1) {
+    return res.status(400).json({ error: "invalid translation id" });
+  }
+  const result = await translationService.getTranslation(translationId);
+  if (result.ok === false) {
+    return sendServiceFailure(res, result);
+  }
+  return res.status(200).json(result.translation);
+}
+
+export async function createTranslation(req: Request, res: Response) {
+  const body = req.body ?? {};
+  const result = await translationService.createTranslation({
+    primaryLanguageId: body.primaryLanguageId,
+    primaryText: body.primaryText,
+    learningLanguageId: body.learningLanguageId,
+    learningText: body.learningText,
+    tagIds: body.tagIds,
+  });
+  if (result.ok === false) {
+    return sendServiceFailure(res, result);
+  }
+  return res.status(201).json(result.translation);
+}
+
+export async function deleteTranslation(req: Request, res: Response) {
+  const translationId = Number(req.params?.translationId);
+  if (!Number.isInteger(translationId) || translationId < 1) {
+    return res.status(400).json({ error: "invalid translation id" });
+  }
+  const result = await translationService.deleteTranslation(translationId);
+  if (result.ok === false) {
+    return sendServiceFailure(res, result);
+  }
+  return res.status(204).send();
+}
+
+export async function updateTranslation(req: Request, res: Response) {
+  const translationId = Number(req.params?.translationId);
+  if (!Number.isInteger(translationId) || translationId < 1) {
+    return res.status(400).json({ error: "invalid translation id" });
+  }
+  const body = req.body ?? {};
+  const result = await translationService.updateTranslation(translationId, {
+    primaryLanguageId: body.primaryLanguageId,
+    primaryText: body.primaryText,
+    learningLanguageId: body.learningLanguageId,
+    learningText: body.learningText,
+    tagIds: body.tagIds,
+  });
+  if (result.ok === false) {
+    return sendServiceFailure(res, result);
+  }
+  return res.status(200).json(result.translation);
+}
+
+export async function listTags(_req: Request, res: Response) {
+  const result = await tagService.listTags();
+  return res.status(200).json({ items: result.tags });
+}
+
+export async function createTag(req: Request, res: Response) {
+  const body = req.body ?? {};
+  const result = await tagService.createTag({
+    name: body.name,
+    parentId: body.parentId,
+  });
+  if (result.ok === false) {
+    return sendServiceFailure(res, result);
+  }
+  return res.status(201).json(result.tag);
+}
+
+export async function updateTag(req: Request, res: Response) {
+  const tagId = Number(req.params?.tagId);
+  if (!Number.isInteger(tagId) || tagId < 1) {
+    return res.status(400).json({ error: "invalid tag id" });
+  }
+  const body = req.body ?? {};
+  const result = await tagService.updateTag(tagId, {
+    name: body.name,
+    parentId: body.parentId,
+  });
+  if (result.ok === false) {
+    return sendServiceFailure(res, result);
+  }
+  return res.status(200).json(result.tag);
+}
+
+export async function deleteTag(req: Request, res: Response) {
+  const tagId = Number(req.params?.tagId);
+  if (!Number.isInteger(tagId) || tagId < 1) {
+    return res.status(400).json({ error: "invalid tag id" });
+  }
+  const result = await tagService.deleteTag(tagId);
+  if (result.ok === false) {
+    return sendServiceFailure(res, result);
+  }
+  return res.status(204).send();
+}
+
+export async function listLanguages(_req: Request, res: Response) {
+  const result = await languageService.listLanguages();
+  return res.status(200).json({ items: result.languages });
+}
+
+export async function createLanguage(req: Request, res: Response) {
+  const body = req.body ?? {};
+  const result = await languageService.createLanguage({ name: body.name });
+  if (result.ok === false) {
+    return sendServiceFailure(res, result);
+  }
+  return res.status(201).json(result.language);
+}
+
+export async function updateLanguage(req: Request, res: Response) {
+  const languageId = Number(req.params?.languageId);
+  if (!Number.isInteger(languageId) || languageId < 1) {
+    return res.status(400).json({ error: "invalid language id" });
+  }
+  const body = req.body ?? {};
+  const result = await languageService.updateLanguage(languageId, { name: body.name });
+  if (result.ok === false) {
+    return sendServiceFailure(res, result);
+  }
+  return res.status(200).json(result.language);
+}
+
+export async function deleteLanguage(req: Request, res: Response) {
+  const languageId = Number(req.params?.languageId);
+  if (!Number.isInteger(languageId) || languageId < 1) {
+    return res.status(400).json({ error: "invalid language id" });
+  }
+  const result = await languageService.deleteLanguage(languageId);
+  if (result.ok === false) {
+    return sendServiceFailure(res, result);
+  }
+  return res.status(204).send();
 }

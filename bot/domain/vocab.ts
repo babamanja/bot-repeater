@@ -1,4 +1,11 @@
 import type { PrismaClient } from '@prisma/client';
+import { resolvePairWordsForUser } from '@vocab-bot/shared/vocabPair';
+import {
+  attachPairToUserDefaultDictionary,
+  attachPairsToUserDefaultDictionary,
+  selectDefaultDictionaryEntry,
+  selectDefaultDictionaryIdForUser,
+} from './dictionary';
 import { initialSchedule, scheduleAfterCorrect, scheduleAfterWrong } from './pimsleur-schedule';
 import { toBigInt } from './telegram-ids';
 import { getUserIdByTelegram, getUserLanguages } from './telegram-user';
@@ -71,7 +78,7 @@ async function requireUserLanguages(
   };
 }
 
-async function ensureUserPairsMembership(
+async function ensureDictionaryMembership(
   prisma: PrismaClient,
   userId: number,
   primaryLangId: number,
@@ -79,8 +86,10 @@ async function ensureUserPairsMembership(
 ): Promise<void> {
   const pairs = await prisma.vocabPair.findMany({
     where: {
-      primaryWord: { languageId: primaryLangId },
-      learningWord: { languageId: learningLangId },
+      OR: [
+        { wordA: { languageId: primaryLangId }, wordB: { languageId: learningLangId } },
+        { wordB: { languageId: primaryLangId }, wordA: { languageId: learningLangId } },
+      ],
     },
     select: { id: true },
   });
@@ -89,15 +98,12 @@ async function ensureUserPairsMembership(
 
   const nowMs = Date.now();
   const s = initialSchedule(nowMs);
-  await prisma.userPair.createMany({
-    data: pairs.map((p: { id: number }) => ({
-      userId,
-      vocabPairId: p.id,
-      pimsleurLevel: s.pimsleurLevel,
-      nextReviewMs: s.nextReviewMs,
-    })),
-    skipDuplicates: true,
-  });
+  await attachPairsToUserDefaultDictionary(
+    prisma,
+    userId,
+    pairs.map((p: { id: number }) => p.id),
+    s,
+  );
 }
 
 async function upsertVocabWord(
@@ -133,18 +139,24 @@ export async function findExistingPairsForPrimaryWord(
 ): Promise<Array<{ pairId: number; learningText: string }>> {
   const pairs = await prisma.vocabPair.findMany({
     where: {
-      primaryWordId,
-      learningWord: { languageId: learningLangId },
+      OR: [
+        { wordAId: primaryWordId, wordB: { languageId: learningLangId } },
+        { wordBId: primaryWordId, wordA: { languageId: learningLangId } },
+      ],
     },
     select: {
       id: true,
-      learningWord: { select: { text: true } },
+      wordA: { select: { id: true, text: true } },
+      wordB: { select: { id: true, text: true } },
     },
   });
-  return pairs.map((p: { id: number; learningWord: { text: string } }) => ({
-    pairId: p.id,
-    learningText: p.learningWord.text,
-  }));
+  return pairs.map((p: { id: number; wordA: { id: number; text: string }; wordB: { id: number; text: string } }) => {
+    const otherWord = p.wordA.id === primaryWordId ? p.wordB : p.wordA;
+    return {
+      pairId: p.id,
+      learningText: otherWord.text,
+    };
+  });
 }
 
 export async function attachUserToVocabPair(
@@ -155,17 +167,25 @@ export async function attachUserToVocabPair(
 ): Promise<void> {
   const userId = await requireInternalUserId(prisma, telegramUserId);
   const s = initialSchedule(nowMs);
-  await prisma.userPair.createMany({
-    data: [
-      {
-        userId,
-        vocabPairId: pairId,
-        pimsleurLevel: s.pimsleurLevel,
-        nextReviewMs: s.nextReviewMs,
-      },
-    ],
-    skipDuplicates: true,
+  await attachPairToUserDefaultDictionary(prisma, userId, pairId, s);
+}
+
+async function findOrCreateTranslationPair(
+  prisma: PrismaClient,
+  wordIdOne: number,
+  wordIdTwo: number,
+) {
+  const wordAId = Math.min(wordIdOne, wordIdTwo);
+  const wordBId = Math.max(wordIdOne, wordIdTwo);
+  let pair = await prisma.vocabPair.findUnique({
+    where: { wordAId_wordBId: { wordAId, wordBId } },
   });
+  if (!pair) {
+    pair = await prisma.vocabPair.create({
+      data: { wordAId, wordBId },
+    });
+  }
+  return pair;
 }
 
 export async function createPairFromPrimaryWordAndLearningText(
@@ -179,27 +199,10 @@ export async function createPairFromPrimaryWordAndLearningText(
   const userId = await requireInternalUserId(prisma, telegramUserId);
   const learningWordId = await upsertVocabWord(prisma, learningLangId, learningText);
 
-  let pair = await prisma.vocabPair.findUnique({
-    where: { primaryWordId_learningWordId: { primaryWordId, learningWordId } },
-  });
-  if (!pair) {
-    pair = await prisma.vocabPair.create({
-      data: { primaryWordId, learningWordId },
-    });
-  }
+  const pair = await findOrCreateTranslationPair(prisma, primaryWordId, learningWordId);
 
   const s = initialSchedule(nowMs);
-  await prisma.userPair.createMany({
-    data: [
-      {
-        userId,
-        vocabPairId: pair.id,
-        pimsleurLevel: s.pimsleurLevel,
-        nextReviewMs: s.nextReviewMs,
-      },
-    ],
-    skipDuplicates: true,
-  });
+  await attachPairToUserDefaultDictionary(prisma, userId, pair.id, s);
 
   return pair.id;
 }
@@ -219,27 +222,10 @@ export async function addWordPair(
   const primaryWordId = await upsertVocabWord(prisma, primaryLangId, promptWord);
   const learningWordId = await upsertVocabWord(prisma, learningLangId, answerWord);
 
-  let pair = await prisma.vocabPair.findUnique({
-    where: { primaryWordId_learningWordId: { primaryWordId, learningWordId } },
-  });
-  if (!pair) {
-    pair = await prisma.vocabPair.create({
-      data: { primaryWordId, learningWordId },
-    });
-  }
+  const pair = await findOrCreateTranslationPair(prisma, primaryWordId, learningWordId);
 
   const s = initialSchedule(nowMs);
-  await prisma.userPair.createMany({
-    data: [
-      {
-        userId,
-        vocabPairId: pair.id,
-        pimsleurLevel: s.pimsleurLevel,
-        nextReviewMs: s.nextReviewMs,
-      },
-    ],
-    skipDuplicates: true,
-  });
+  await attachPairToUserDefaultDictionary(prisma, userId, pair.id, s);
 
   return pair.id;
 }
@@ -254,18 +240,23 @@ export async function getRandomDueWordsForUser(
     prisma,
     telegramUserId,
   );
-  await ensureUserPairsMembership(prisma, userId, primaryLangId, learningLangId);
+  await ensureDictionaryMembership(prisma, userId, primaryLangId, learningLangId);
 
-  const dueRows = await prisma.userPair.findMany({
+  const dictionaryId = await selectDefaultDictionaryIdForUser(prisma, userId);
+  if (dictionaryId == null) {
+    return [];
+  }
+
+  const dueRows = await prisma.dictionaryEntry.findMany({
     where: {
-      userId,
+      dictionaryId,
       nextReviewMs: { lte: toBigInt(nowMs) },
     },
     include: {
       vocabPair: {
         include: {
-          primaryWord: { select: { text: true } },
-          learningWord: { select: { text: true } },
+          wordA: { select: { text: true, languageId: true } },
+          wordB: { select: { text: true, languageId: true } },
         },
       },
     },
@@ -282,10 +273,19 @@ export async function getRandomDueWordsForUser(
   const out: DueVocabPair[] = [];
   for (let i = 0; i < cap; i++) {
     const vp = dueRows[i].vocabPair;
+    const resolved = resolvePairWordsForUser(
+      vp.wordA,
+      vp.wordB,
+      primaryLangId,
+      learningLangId,
+    );
+    if (!resolved) {
+      continue;
+    }
     out.push({
       pairId: vp.id,
-      learningWord: vp.learningWord.text,
-      primaryWord: vp.primaryWord.text,
+      learningWord: resolved.learningWord.text,
+      primaryWord: resolved.primaryWord.text,
     });
   }
   return out;
@@ -433,39 +433,47 @@ export async function applyReviewResult(
   result: 'know' | 'dont',
   nowMs: number,
 ): Promise<{ learningWord: string; primaryWord: string }> {
-  const userId = await requireInternalUserId(prisma, telegramUserId);
+  const { userId, primaryLangId, learningLangId } = await requireUserLanguages(
+    prisma,
+    telegramUserId,
+  );
 
-  const up = await prisma.userPair.findUnique({
-    where: { userId_vocabPairId: { userId, vocabPairId: pairId } },
-    include: {
-      vocabPair: {
-        include: {
-          learningWord: { select: { text: true } },
-          primaryWord: { select: { text: true } },
-        },
-      },
-    },
-  });
+  const entry = await selectDefaultDictionaryEntry(prisma, userId, pairId);
 
-  if (!up) {
-    throw new Error(`UserPair not found: user=${telegramUserId} pair=${pairId}`);
+  if (!entry) {
+    throw new Error(`Dictionary entry not found: user=${telegramUserId} pair=${pairId}`);
   }
 
   const sch =
     result === 'know'
-      ? scheduleAfterCorrect(up.pimsleurLevel, nowMs)
+      ? scheduleAfterCorrect(entry.pimsleurLevel, nowMs)
       : scheduleAfterWrong(nowMs);
 
-  await prisma.userPair.update({
-    where: { userId_vocabPairId: { userId, vocabPairId: pairId } },
+  await prisma.dictionaryEntry.update({
+    where: {
+      dictionaryId_vocabPairId: {
+        dictionaryId: entry.dictionaryId,
+        vocabPairId: pairId,
+      },
+    },
     data: {
       pimsleurLevel: sch.pimsleurLevel,
       nextReviewMs: sch.nextReviewMs,
     },
   });
 
+  const resolved = resolvePairWordsForUser(
+    entry.vocabPair.wordA,
+    entry.vocabPair.wordB,
+    primaryLangId,
+    learningLangId,
+  );
+  if (!resolved) {
+    throw new Error(`Pair languages do not match user settings: pair=${pairId}`);
+  }
+
   return {
-    learningWord: up.vocabPair.learningWord.text,
-    primaryWord: up.vocabPair.primaryWord.text,
+    learningWord: resolved.learningWord.text,
+    primaryWord: resolved.primaryWord.text,
   };
 }

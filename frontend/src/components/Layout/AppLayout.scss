@@ -20,6 +20,9 @@ $app-topbar-z: 101;
 }
 
 .app-topbar__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-md;
   min-width: 0;
   margin-right: auto;
   text-decoration: none;
@@ -28,6 +31,16 @@ $app-topbar-z: 101;
   &:hover .app-topbar__title {
     color: $color-primary;
   }
+}
+
+.app-brand__icon {
+  flex-shrink: 0;
+}
+
+.app-sidebar__brand-row {
+  display: flex;
+  align-items: center;
+  gap: $space-md;
 }
 
 .app-topbar__title {
@@ -121,7 +134,7 @@ $app-topbar-z: 101;
   margin: 0;
   padding: 0;
   border: none;
-  background: rgba(15, 23, 42, 0.45);
+  background: rgba(36, 58, 32, 0.45);
   cursor: pointer;
 }
 
@@ -190,9 +203,9 @@ $app-topbar-z: 101;
   }
 
   &--premium {
-    background: linear-gradient(135deg, $color-warm 0%, #e89a1a 100%);
-    color: $color-text;
-    box-shadow: 0 2px 8px rgba(244, 178, 62, 0.35);
+    background: linear-gradient(135deg, $color-accent 0%, $color-primary 100%);
+    color: $color-surface;
+    box-shadow: 0 2px 8px rgba(45, 70, 40, 0.2);
   }
 }
 

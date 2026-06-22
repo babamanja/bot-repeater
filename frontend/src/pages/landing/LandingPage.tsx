@@ -7,7 +7,6 @@ import { Header } from './components/Header'
 import { BenefitsSection } from './sections/BenefitsSection'
 import { CtaSection } from './sections/CtaSection'
 import { HeroSection } from './sections/HeroSection'
-import { PainSection } from './sections/PainSection'
 import { PricingSection } from './sections/PricingSection'
 import { ProductHowItWorksSection } from './sections/ProductHowItWorksSection'
 import AuthModal from '../../components/auth/AuthModal'
@@ -62,7 +61,6 @@ export function LandingPage() {
           onRequireSignup={() => openAuthModal('signup')}
           onRequireLoginToContinue={() => openAuthModal('login')}
         />
-        <PainSection />
         <BenefitsSection />
         <ProductHowItWorksSection />
         <CtaSection onGetStarted={() => openAuthModal('signup')} />

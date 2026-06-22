@@ -9,7 +9,9 @@ export const PRIVACY_POLICY_PATH = "/?legal=privacy";
 export const TERMS_OF_SERVICE_PATH = "/?legal=terms";
 export const REFUND_POLICY_PATH = "/?legal=refund";
 
-export const USER_HOME_PATH = "/my-subscription";
+export const USER_HOME_PATH = "/dashboard";
+export const WORDS_PATH = "/words";
+export const DICTIONARIES_PATH = "/dictionaries";
 export const FEEDBACK_PATH = "/feedback";
 
 /** Post-login home and sidebar brand target by role. */

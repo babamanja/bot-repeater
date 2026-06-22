@@ -4,7 +4,6 @@ import {
   type SubscriptionPayment,
   type SubscriptionPaymentStatus,
 } from "../api/subscription";
-import { refreshMyTokenBalance } from "../api/tokens";
 
 const TERMINAL_STATUSES: ReadonlySet<SubscriptionPaymentStatus> = new Set([
   "succeeded",
@@ -34,7 +33,6 @@ export async function pollPaymentUntilSettled(
     lastPayment = await syncPaymentFromPaddle(paymentId);
     if (TERMINAL_STATUSES.has(lastPayment.status)) {
       if (lastPayment.status === "succeeded") {
-        void refreshMyTokenBalance();
         return { status: "succeeded", payment: lastPayment };
       }
       if (lastPayment.status === "failed") {
@@ -50,7 +48,6 @@ export async function pollPaymentUntilSettled(
     lastPayment = await getMyPaymentStatus(paymentId);
     if (TERMINAL_STATUSES.has(lastPayment.status)) {
       if (lastPayment.status === "succeeded") {
-        void refreshMyTokenBalance();
         return { status: "succeeded", payment: lastPayment };
       }
       if (lastPayment.status === "failed") {

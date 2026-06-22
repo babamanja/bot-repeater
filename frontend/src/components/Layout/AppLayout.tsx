@@ -4,10 +4,9 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { logOut, resendVerificationEmail } from "../../api/auth";
 import { getMySubscription, type MySubscription } from "../../api/subscription";
-import { refreshMyTokenBalance, subscribeToMyTokenBalance } from "../../api/tokens";
 import { MEDIA_MOBILE } from "../../constants/breakpoints";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
-import { FEEDBACK_PATH, homePathForRole, USER_HOME_PATH } from "../../paths";
+import { DICTIONARIES_PATH, FEEDBACK_PATH, homePathForRole, USER_HOME_PATH, WORDS_PATH } from "../../paths";
 import { clearStoredSession, getStoredUser, subscribeToSession } from "../../userStorage";
 import Button from "../UI/Button/Button";
 
@@ -20,7 +19,9 @@ type NavItem = {
 };
 
 const USER_NAV_ITEMS: NavItem[] = [
-  { to: USER_HOME_PATH, labelKey: "nav.mySubscriptions", end: true },
+  { to: USER_HOME_PATH, labelKey: "nav.dashboard", end: true },
+  { to: WORDS_PATH, labelKey: "nav.words" },
+  { to: DICTIONARIES_PATH, labelKey: "nav.dictionaries" },
   { to: "/billing-history", labelKey: "nav.billing" },
   { to: "/profile", labelKey: "nav.profile" },
   { to: FEEDBACK_PATH, labelKey: "nav.feedback" },
@@ -32,6 +33,10 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
   { to: "/admin/payments", labelKey: "nav.adminPayments" },
   { to: "/admin/qualification", labelKey: "nav.adminQualification" },
   { to: "/admin/feedback", labelKey: "nav.adminFeedback" },
+  { to: "/admin/tags", labelKey: "nav.adminTags" },
+  { to: "/admin/languages", labelKey: "nav.adminLanguages" },
+  { to: "/admin/words", labelKey: "nav.adminWords" },
+  { to: "/admin/translations", labelKey: "nav.adminTranslations" },
   { to: "/admin/user-pairs", labelKey: "nav.adminUserPairs" },
   { to: "/admin/ai-usage", labelKey: "nav.adminAiUsage" },
 ];
@@ -85,36 +90,27 @@ export default function AppLayout() {
   const [planCode, setPlanCode] = useState<MySubscription["effectivePlanCode"] | null>(
     null,
   );
-  const [tokens, setTokens] = useState<number | null>(null);
 
   useEffect(() => {
     let isMounted = true;
-    Promise.all([getMySubscription(), refreshMyTokenBalance()])
-      .then(([subscription, balance]) => {
+    getMySubscription()
+      .then((subscription) => {
         if (!isMounted) {
           return;
         }
         setPlanCode(subscription.effectivePlanCode);
-        setTokens(balance);
       })
       .catch(() => {
         if (!isMounted) {
           return;
         }
         setPlanCode(null);
-        setTokens(null);
       });
 
     return () => {
       isMounted = false;
     };
   }, [location.pathname]);
-
-  useEffect(() => {
-    return subscribeToMyTokenBalance((balance) => {
-      setTokens(balance);
-    });
-  }, []);
 
   const closeMenu = () => setMenuOpen(false);
 
@@ -150,6 +146,7 @@ export default function AppLayout() {
     <div className="app-shell">
       <header className="app-topbar">
         <NavLink to={brandHomePath} className="app-topbar__brand" end onClick={closeMenu}>
+          <img className="app-brand__icon" src="/landing/logo-icon.png" alt="" width={28} height={28} />
           <span className="app-topbar__title">{t("nav.brandTitle")}</span>
         </NavLink>
         <button
@@ -184,7 +181,10 @@ export default function AppLayout() {
         aria-hidden={isMobile ? !menuOpen : false}
       >
         <NavLink to={brandHomePath} className="app-sidebar__brand" end onClick={closeMenu}>
-          <span className="app-sidebar__title">{t("nav.brandTitle")}</span>
+          <span className="app-sidebar__brand-row">
+            <img className="app-brand__icon" src="/landing/logo-icon.png" alt="" width={32} height={32} />
+            <span className="app-sidebar__title">{t("nav.brandTitle")}</span>
+          </span>
           <span className="app-sidebar__tagline">{user?.userName || t("nav.brandTagline")}</span>
           <div className="app-sidebar__account-meta">
             <div className="app-sidebar__meta-row">
@@ -193,12 +193,6 @@ export default function AppLayout() {
                 className={`app-sidebar__plan-badge app-sidebar__plan-badge--${planCode ?? "basic"}`}
               >
                 {planCode ? t(`nav.plan.${planCode}`) : t("nav.plan.basic")}
-              </span>
-            </div>
-            <div className="app-sidebar__meta-row app-sidebar__meta-row--tokens">
-              <span className="app-sidebar__meta-label">{t("nav.tokensBalance")}</span>
-              <span className="app-sidebar__tokens-value">
-                {tokens ?? t("nav.tokensUnavailable")}
               </span>
             </div>
           </div>

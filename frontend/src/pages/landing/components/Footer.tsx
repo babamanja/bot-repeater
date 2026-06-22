@@ -7,51 +7,48 @@ export function Footer() {
   const { t } = useTranslation()
   const year = new Date().getFullYear()
 
-  const productLinks = t('landing.footer.columns.product.links', {
-    returnObjects: true,
-  }) as string[]
-  const legalLinks = t('landing.footer.columns.legal.links', {
-    returnObjects: true,
-  }) as string[]
-
-  const productHrefs = ['#benefits', '#how-it-works', '#pricing', '#']
-  const legalHrefs = [PRIVACY_POLICY_PATH, TERMS_OF_SERVICE_PATH, REFUND_POLICY_PATH]
+  const footerLinks = [
+    { label: t('landing.footer.about'), href: '#about' },
+    { label: t('landing.footer.support'), href: '#contact' },
+    { label: t('landing.footer.privacy'), href: PRIVACY_POLICY_PATH, isRoute: true },
+    { label: t('landing.footer.terms'), href: TERMS_OF_SERVICE_PATH, isRoute: true },
+  ]
 
   return (
     <footer className="qb-footer" id="contact">
       <div className="qb-footer__inner">
-        <p className="qb-footer__tagline">{t('landing.footer.tagline')}</p>
-        <nav className="qb-footer__grid" aria-label="Footer">
-          <div>
-            <h3>{t('landing.footer.columns.product.title')}</h3>
-            <ul>
-              {productLinks.map((label, index) => (
-                <li key={label}>
-                  <a href={productHrefs[index] ?? '#'}>{label}</a>
-                </li>
-              ))}
-            </ul>
+        <div className="qb-footer__top">
+          <a className="qb-footer__brand" href="#top">
+            <img src="/landing/logo-icon.png" alt="" width={28} height={28} />
+            <span>{t('landing.nav.brand')}</span>
+          </a>
+          <nav className="qb-footer__links" aria-label="Footer">
+            {footerLinks.map((link) => (
+              <span key={link.label}>
+                {link.isRoute ? (
+                  <Link to={link.href}>{link.label}</Link>
+                ) : (
+                  <a href={link.href}>{link.label}</a>
+                )}
+              </span>
+            ))}
+          </nav>
+          <div className="qb-footer__social" aria-label={t('landing.footer.socialAria')}>
+            <a href="#" aria-label="Instagram" className="qb-footer__social-link">
+              IG
+            </a>
+            <a href="#" aria-label="X (Twitter)" className="qb-footer__social-link">
+              X
+            </a>
+            <a href="#" aria-label="Telegram" className="qb-footer__social-link">
+              TG
+            </a>
           </div>
-          <div>
-            <h3>{t('landing.footer.columns.legal.title')}</h3>
-            <ul>
-              {legalLinks.map((label, index) => {
-                const href = legalHrefs[index] ?? '#'
-                return (
-                  <li key={label}>
-                    {href.startsWith('/') ? (
-                      <Link to={href}>{label}</Link>
-                    ) : (
-                      <a href={href}>{label}</a>
-                    )}
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        </nav>
+        </div>
         <p className="qb-footer__copy">
           {t('landing.footer.copyright', { year })}
+          {' · '}
+          <Link to={REFUND_POLICY_PATH}>{t('landing.footer.refund')}</Link>
         </p>
       </div>
     </footer>

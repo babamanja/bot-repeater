@@ -103,7 +103,7 @@ type TokensInsufficientShownProps = AnalyticsBaseProps &
 
 type CheckoutStartedProps = AnalyticsBaseProps &
   AnalyticsChannelDimensions & {
-    checkout_type: "subscription" | "token_topup";
+    checkout_type: "subscription";
     plan_code: string;
     token_amount?: number;
   };
@@ -111,7 +111,7 @@ type CheckoutStartedProps = AnalyticsBaseProps &
 type CheckoutRedirectedProps = AnalyticsBaseProps &
   AnalyticsChannelDimensions & {
     payment_id: string;
-    checkout_type: "subscription" | "token_topup";
+    checkout_type: "subscription";
     plan_code: string;
   };
 
@@ -132,11 +132,16 @@ type CheckoutFailedProps = AnalyticsBaseProps &
 type SubscriptionOpenedProps = AnalyticsBaseProps & AnalyticsChannelDimensions;
 
 type BillingHistoryOpenedProps = AnalyticsBaseProps & AnalyticsChannelDimensions;
+type UserDashboardOpenedProps = AnalyticsBaseProps & AnalyticsChannelDimensions;
+type WordsPageOpenedProps = AnalyticsBaseProps & AnalyticsChannelDimensions;
+type DictionariesPageOpenedProps = AnalyticsBaseProps & AnalyticsChannelDimensions;
 
 type ProfileUpdatedProps = AnalyticsBaseProps &
   AnalyticsChannelDimensions & {
     email_changed: boolean;
     user_name_changed: boolean;
+    primary_language_changed: boolean;
+    learning_language_changed: boolean;
   };
 
 type ProfileUpdateFailedProps = AnalyticsBaseProps &
@@ -222,7 +227,10 @@ export type AnalyticsEventMap = {
   checkout_completed: CheckoutCompletedProps;
   checkout_failed: CheckoutFailedProps;
   subscription_opened: SubscriptionOpenedProps;
+  user_dashboard_opened: UserDashboardOpenedProps;
   billing_history_opened: BillingHistoryOpenedProps;
+  words_page_opened: WordsPageOpenedProps;
+  dictionaries_page_opened: DictionariesPageOpenedProps;
   profile_updated: ProfileUpdatedProps;
   profile_update_failed: ProfileUpdateFailedProps;
   admin_users_opened: AdminPageOpenedProps;
@@ -243,6 +251,8 @@ export type AnalyticsEventMap = {
   admin_ai_usage_opened: AdminPageOpenedProps;
   admin_feedback_opened: AdminFeedbackOpenedProps;
   admin_user_pairs_opened: AdminPageOpenedProps;
+  admin_words_opened: AdminPageOpenedProps;
+  admin_translations_opened: AdminPageOpenedProps;
   admin_chunk_summary_prompt_saved: AdminChunkSummaryPromptSavedProps;
   admin_chunk_summary_prompt_reset: AdminChunkSummaryPromptResetProps;
   admin_premium_granted: AdminPremiumGrantedProps;

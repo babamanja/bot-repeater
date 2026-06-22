@@ -1,15 +1,12 @@
 import { getPaddleApiBaseUrl } from "../config/paddle.js";
 import * as paymentRepository from "../db/paymentRepository.js";
 import * as subscriptionRepository from "../db/subscriptionRepository.js";
-import * as tokenRepository from "../db/tokenRepository.js";
 import { getPaddleWebhookVerificationFailure } from "../utils/paddleWebhookSignature.js";
 import {
   getRequiredEnv,
   readBillingPeriod,
   readPlanCode,
-  readTokenTopupAmountFromMetadata,
 } from "./paymentMetadata.js";
-import { getSubscriptionPlanTokenGrant } from "./paymentPricing.js";
 
 export type PaddleTransactionData = {
   id?: string;
@@ -25,29 +22,6 @@ export type PaddleWebhookPayload = {
 type PaddleTransactionResponse = {
   data?: PaddleTransactionData;
 };
-
-async function grantSubscriptionPlanTokensFromPayment(input: {
-  userId: number;
-  planCode: subscriptionRepository.SubscriptionPlanCode;
-  paymentId: string;
-  source: string;
-}): Promise<void> {
-  const amount = getSubscriptionPlanTokenGrant(input.planCode);
-  if (!Number.isFinite(amount) || amount <= 0) {
-    return;
-  }
-  await tokenRepository.addTokensForUserIdempotent({
-    userId: input.userId,
-    amount,
-    transactionType: "bonus",
-    referenceId: input.paymentId,
-    idempotencyKey: `subscription_plan_tokens:${input.paymentId}`,
-    metadata: {
-      source: input.source,
-      planCode: input.planCode,
-    },
-  });
-}
 
 export function readPaymentIdFromPaddleTransaction(
   customData: Record<string, unknown> | undefined,
@@ -203,29 +177,6 @@ export async function applyPaddleTransactionToPayment(
         planCode,
         paymentId: updatedPayment.id,
         billingPeriod: readBillingPeriod(payment.metadata),
-      });
-      await grantSubscriptionPlanTokensFromPayment({
-        userId: updatedPayment.userId,
-        planCode,
-        paymentId: updatedPayment.id,
-        source: "paddle_subscription_checkout",
-      });
-    }
-    if (flow === "token_topup_checkout") {
-      const tokenAmount = readTokenTopupAmountFromMetadata(payment.metadata);
-      if (tokenAmount == null) {
-        console.error("[payments] Paddle transaction missing tokenAmount", {
-          paymentId: payment.id,
-        });
-        throw new Error("tokenAmount missing in payment metadata");
-      }
-      await tokenRepository.addTokensForUserIdempotent({
-        userId: updatedPayment.userId,
-        amount: tokenAmount,
-        transactionType: "purchase",
-        referenceId: updatedPayment.id,
-        idempotencyKey: `payment:${updatedPayment.id}`,
-        metadata: { source: "paddle_token_topup_checkout" },
       });
     }
     return;

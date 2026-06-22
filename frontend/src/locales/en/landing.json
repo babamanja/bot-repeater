@@ -1,16 +1,16 @@
 {
   "landing": {
     "nav": {
-      "brand": "QuizBuddy",
-      "benefits": "Benefits",
+      "brand": "Language Turtle",
+      "features": "Features",
       "howItWorks": "How it works",
       "pricing": "Pricing",
+      "about": "About us",
       "faq": "FAQ",
-      "contact": "Contact",
-      "cta": "Get started",
+      "cta": "Get Started",
       "greeting": "Hi, {{name}}",
       "goToApp": "Open app",
-      "goToAppAria": "Go to your QuizBuddy workspace",
+      "goToAppAria": "Go to your workspace",
       "menuOpen": "Open menu",
       "menuClose": "Close menu",
       "userMenuOpen": "Open account menu",
@@ -18,146 +18,69 @@
       "primaryNavAria": "Primary navigation"
     },
     "hero": {
-      "title": "AI quiz companion: stop rereading, start remembering",
-      "subtitle": "Upload your materials. Find the gaps. Remember it for good.",
-      "persona": "For students who want their study time to actually stick",
-      "cta": "Get your first quiz",
-      "imageAlt": "Illustration: quiz practice from your study materials",
-      "visualAriaLabel": "Mascot illustration with primary call to action",
-      "demoTitle": "Try Now!",
-      "demo": {
-        "subtitle": "Upload your file — we'll generate a quiz.",
-        "upload": {
-          "title": "Upload your file",
-          "subtitle": "We'll generate a quiz from your material.",
-          "dropzone": "Drop your file or click here to browse",
-          "dropzoneDragActive": "Release to upload your file",
-          "hint": "PDF, plain text (.txt), or images (JPG, PNG, WebP), up to {{maxMb}} MB. Scanned pages are recognized automatically.",
-          "features": {
-            "instant": "10 questions generated instantly",
-            "points": "Based on the most important points",
-            "results": "See your results right away"
-          }
-        },
-        "generateQuiz": "Generate quiz",
-        "readyDivider": "Ready to generate your quiz?",
-        "readyToGenerate": "Your file is ready. Generate a quiz when you're ready.",
-        "textTruncatedNotice": "Your file was longer than the demo limit — we kept the first {{max}} characters.",
-        "pdfPagesTruncatedNotice": "This PDF has more than {{max}} pages — only the first {{max}} pages were used.",
-        "uploadAnother": "Upload another file",
-        "check": "Check answers",
-        "next": "Next",
-        "previous": "Previous",
-        "progress": "Question {{current}} of {{total}}",
-        "score": "{{correct}} of {{total}} correct",
-        "fileLabel": "File: {{name}}",
-        "extracting": "Reading your file…",
-        "extractingTitle": "Reading your file…",
-        "extractingHint": "This usually takes a few seconds.",
-        "generating": "Generating your {{count}}-question quiz…",
-        "generatingTitle": "Generating your quiz…",
-        "generatingHint": "This usually takes about 20–30 seconds.",
-        "secureNotice": "Your file is secure and private. We don't store or share your materials.",
-        "errorGeneric": "Something went wrong. Please try another file.",
-        "errorEmptyFile": "We couldn't find any text in that file.",
-        "errorGenerationTimeout": "Quiz generation is taking too long. Please try again.",
-        "errorCheckFailed": "Could not check your answers. Please try again.",
-        "errorSignupRequired": "Please sign up to check your answers.",
-        "loginToContinue": "Sign in to save and continue",
-        "signInToContinue": "Sign in to continue",
-        "signInPrompt": "Sign in to save your progress, see your score, and review answers.",
-        "errorInsufficientTokens": "Not enough tokens. Top up your balance to finish this quiz."
-      }
-    },
-    "pains": {
-      "title": "You study for hours… and still don’t feel ready",
-      "items": [
-        "My notes are scattered across PDFs, slides, and docs. Turning them into practice feels like manual labor.",
-        "I keep rereading everything, but when I actually need it, I’m not sure what I remember.",
-        "It feels clear when I read it… but if I don’t review, it’s gone the next day.",
-        "I always plan to study gradually, and then end up cramming right before the deadline.",
-        "The AI hallucinates, and I can’t edit the quizzes. So I’m stuck learning from mistakes that aren’t even mine."
-      ],
-      "outcome": ""
+      "title": "Learn languages slowly. Every day.",
+      "subtitle": "Small steps, smart repetition, zero stress. Build vocabulary at your own pace with a friendly companion that keeps you coming back.",
+      "cta": "Get Started for Free",
+      "ctaHint": "No credit card required.",
+      "imageAlt": "Friendly turtle mascot — your language learning companion",
+      "visualAriaLabel": "Language Turtle mascot illustration",
+      "storeAppStore": "Download on the App Store",
+      "storeGooglePlay": "Get it on Google Play",
+      "storeComingSoon": "Coming soon"
     },
     "benefits": {
-      "title": "Stop rereading. Start remembering",
-      "subtitle": "Know what you remember. Fix what you don’t.",
+      "title": "Built for steady progress",
+      "subtitle": "Everything you need to learn without burnout.",
       "items": [
         {
-          "title": "Remember up to 2× more with active recall",
-          "description": "Based on how memory works. Repeat what matters"
+          "title": "Small steps",
+          "description": "A few words a day — enough to grow, never enough to overwhelm."
         },
         {
-          "title": "Feel confident before exams",
-          "description": "Know what you actually know."
+          "title": "Spaced repetition that works",
+          "description": "Review at the right moment so words move from short-term to long-term memory."
         },
         {
-          "title": "No more last-minute panic",
-          "description": "Study smoothly. No cramming the night before."
+          "title": "Personalized journey",
+          "description": "Your vocabulary, your pace. Add words from life, books, or lessons."
         },
         {
-          "title": "Stay focused while studying",
-          "description": "Stop just reading. Start practicing."
+          "title": "Track your progress",
+          "description": "See what you know, what needs review, and how far you've come."
         }
       ]
     },
     "product": {
       "title": "How it works",
-      "subtitle": "From notes to knowledge in 5 steps",
+      "subtitle": "Four simple steps to lasting vocabulary",
       "steps": [
         {
-          "title": "Upload what you already study",
-          "bullets": [
-            "Drop in PDFs, notes, or slides. No setup, no reformatting.",
-            "Start right away."
-          ],
-          "imagePlaceholder": "Step 1 UI: file upload"
+          "title": "Learn",
+          "description": "Add new words in the web app or pick them up in daily Telegram sessions."
         },
         {
-          "title": "AI finds what actually matters",
-          "bullets": [
-            "We find key ideas for you.",
-            "Focus on what matters."
-          ],
-          "imagePlaceholder": "Step 2 UI: key points extraction"
+          "title": "Review",
+          "description": "Short quizzes meet you when your memory needs a gentle nudge."
         },
         {
-          "title": "Turn key points into quizzes",
-          "bullets": [
-            "Practice questions from your notes.",
-            "Learn exactly what you need, no random questions."
-          ],
-          "imagePlaceholder": "Step 3 UI: quiz generation"
+          "title": "Remember",
+          "description": "Spaced repetition brings words back until they stick for good."
         },
         {
-          "title": "Fix anything in seconds",
-          "bullets": [
-            "Edit if something looks wrong.",
-            "Stay in control. AI assists, you decide."
-          ],
-          "imagePlaceholder": "Step 4 UI: editing"
-        },
-        {
-          "title": "Never forget what you learned",
-          "bullets": [
-            "We remind you before you forget.",
-            "Every key point is repeated until it sticks."
-          ],
-          "imagePlaceholder": "Step 5 UI: spaced repetition"
+          "title": "Achieve",
+          "description": "Watch your vocabulary grow — calmly, consistently, every day."
         }
       ]
     },
     "pricing": {
       "title": "Simple pricing",
-      "subtitle": "Start free. Upgrade if you need more.",
+      "subtitle": "Start free. Upgrade when you're ready for more.",
       "basic": {
         "name": "Basic",
         "period": "/ month",
         "features": [
-          "Generate quizzes from your text",
-          "Upload files up to 5 MB",
-          "Access quiz history and attempts",
+          "Vocabulary practice in Telegram",
+          "Web profile and bot linking",
           "Standard support"
         ],
         "cta": "Choose Basic"
@@ -166,74 +89,62 @@
         "name": "Premium",
         "period": "/ month",
         "features": [
-          "Priority quiz generation speed",
-          "600 points included every month",
-          "30% discount on point top-ups",
-          "Upload files up to 25 MB",
-          "Upload and save documents without generating a quiz",
-          "Advanced options on Create Quiz — tune questions per chunk and preview chunk breakdown",
-          "Priority support response"
+          "Premium access in the Telegram bot",
+          "Priority support response",
+          "Early access to new learning features"
         ],
         "cta": "Go Premium",
         "badge": "Popular"
-      },
-      "payAsYouGo": {
-        "name": "Pay as you go",
-        "period": "",
-        "features": [
-          "No monthly commitment",
-          "Buy only when you need more points",
-          "Works as a standalone plan"
-        ],
-        "cta": "Buy point pack",
-        "packSelectorLabel": "Select point package",
-        "tokensLabel": "Points",
-        "packagePriceLabel": "Package price"
       }
     },
     "faq": {
       "title": "FAQ",
       "items": [
         {
-          "question": "What can I upload?",
-          "answer": "Common formats like PDF and text work great. We’re expanding support continuously."
+          "question": "How does Language Turtle work?",
+          "answer": "Add vocabulary in the web app, practice in Telegram, and let spaced repetition schedule reviews so you remember more with less effort."
         },
         {
-          "question": "How does QuizBuddy use my files?",
-          "answer": "Content is processed to generate questions and summaries for your sessions. You control retention settings."
+          "question": "Do I need both Telegram and the web app?",
+          "answer": "Telegram is great for daily practice on the go. The web app is where you manage words, tags, and your profile. Link both from your account settings."
         },
         {
           "question": "Is my data private?",
-          "answer": "Encryption in transit and sensible access controls. Share only what you choose on Team plans."
+          "answer": "Your vocabulary and progress belong to you. We use encryption in transit and sensible access controls."
         }
       ]
     },
     "ctaSection": {
-      "title": "Turn your notes into quizzes, and actually remember them",
-      "subtitle": "Upload your materials, get your first quiz in minutes, and see what you really know.",
-      "button": "Get your first quiz",
-      "buttonHint": "Sign up, upload your materials, and get your first quiz in minutes. It's free to try.",
+      "title": "Your daily language companion",
+      "subtitle": "Practice in Telegram between meetings, manage your word list on the web, and let gentle reminders keep you on track.",
+      "button": "Get Started for Free",
+      "buttonHint": "Sign up in seconds — no credit card required.",
       "buttonLoggedIn": "Go to your workspace",
-      "buttonHintLoggedIn": "Pick up where you left off — create a quiz or review your existing ones."
+      "buttonHintLoggedIn": "Pick up where you left off — review words or add new ones."
     },
     "footer": {
-      "tagline": "Turn your study materials into quizzes, and actually remember them.",
+      "tagline": "Learn languages slowly. Every day.",
+      "about": "About us",
+      "support": "Support",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "refund": "Refund Policy",
+      "socialAria": "Social links",
       "columns": {
         "product": {
           "title": "Product",
           "links": [
-            "Benefits",
+            "Features",
             "How it works",
             "Pricing",
-            "Changelog"
+            "FAQ"
           ]
         },
         "company": {
           "title": "Company",
           "links": [
             "About",
-            "Careers",
-            "Press",
+            "Support",
             "Contact"
           ]
         },
@@ -246,7 +157,7 @@
           ]
         }
       },
-      "copyright": "© {{year}} quizBuddy. All rights reserved."
+      "copyright": "© {{year}} Language Turtle. All rights reserved."
     }
   }
 }

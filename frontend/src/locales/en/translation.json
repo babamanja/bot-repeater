@@ -13,7 +13,9 @@
     "adminDashboard": "Dashboard",
     "makeNewQuiz": "Make a New Quiz",
     "billing": "Billing History",
-    "mySubscriptions": "My Subscriptions and Points",
+    "mySubscriptions": "My Subscription",
+    "words": "My Words",
+    "dictionaries": "My Dictionaries",
     "myDocuments": "My Documents",
     "myQuizzes": "My Quizzes",
     "myAttempts": "My Attempts",
@@ -24,17 +26,18 @@
     "adminPrompt": "Prompt",
     "adminQualification": "Qualification",
     "adminFeedback": "Feedback",
+    "adminTags": "Tags",
+    "adminLanguages": "Languages",
+    "adminWords": "Words",
+    "adminTranslations": "Translations",
     "adminUserPairs": "User pairs",
     "adminAiUsage": "AI usage",
     "mainNavigation": "Main navigation",
     "menuOpen": "Open menu",
     "menuClose": "Close menu",
-    "brandTitle": "AI Tutor",
-    "brandTagline": "Text to quiz",
+    "brandTitle": "Language Turtle",
+    "brandTagline": "Learn slowly. Every day.",
     "currentPlan": "Plan",
-    "tokensBalance": "Points",
-    "noPlan": "No active plan",
-    "tokensUnavailable": "N/A",
     "plan": {
       "basic": "Basic",
       "premium": "Premium"
@@ -43,31 +46,40 @@
   },
   "dashboard": {
     "user": {
-      "heading": "Your dashboard",
-      "intro": "Hi, {{name}} — jump into any area below.",
+      "heading": "Dashboard",
+      "intro": "Hi, {{name}} — here is your learning overview.",
       "fallbackName": "there",
       "open": "Open",
-      "statsTitle": "Your activity",
-      "statsLoadFailed": "Could not load stats",
+      "statsTitle": "Overview",
+      "statsLoadFailed": "Could not load dashboard",
+      "quickLinksTitle": "Quick links",
+      "subscriptionTitle": "Subscription",
+      "subscriptionCanceling": "cancels at period end",
+      "manageSubscription": "Manage subscription",
+      "planBasic": "Basic",
+      "planPremium": "Premium",
+      "subscriptionStatusActive": "Active",
+      "subscriptionStatusCanceled": "Canceled",
+      "subscriptionStatusPastDue": "Past due",
+      "languagesValue": "Learning: {{primary}} → {{learning}}",
+      "languagesNotSet": "Set your languages in the Telegram bot to start adding words.",
       "stats": {
-        "vocabPairCount": "Vocabulary pairs in progress"
+        "vocabPairCount": "Words learning",
+        "dictionaryCount": "Dictionaries",
+        "dueWordCount": "Due for review"
       },
       "links": {
-        "generate": {
-          "title": "Create a quiz",
-          "desc": "Turn notes or a file into a quiz with AI."
+        "words": {
+          "title": "My Words",
+          "desc": "Browse vocabulary pairs and review schedule."
         },
-        "quizzes": {
-          "title": "My quizzes",
-          "desc": "Edit or take quizzes you already created."
-        },
-        "attempts": {
-          "title": "My attempts",
-          "desc": "Review past results and scores."
+        "dictionaries": {
+          "title": "My Dictionaries",
+          "desc": "See your vocabulary collections."
         },
         "subscription": {
-          "title": "Subscription & points",
-          "desc": "Upgrade plan or buy more points."
+          "title": "Subscription",
+          "desc": "Upgrade or manage your plan."
         },
         "billing": {
           "title": "Billing history",
@@ -75,7 +87,11 @@
         },
         "profile": {
           "title": "Profile",
-          "desc": "Update your name, email, or delete your account."
+          "desc": "Update your name, email, or link Telegram."
+        },
+        "feedback": {
+          "title": "Feedback",
+          "desc": "Send a bug report or feature request."
         }
       }
     },
@@ -86,7 +102,7 @@
       "links": {
         "users": {
           "title": "Users",
-          "desc": "Search users, open details, adjust points."
+          "desc": "Search users and open account details."
         },
         "payments": {
           "title": "Payments",
@@ -103,6 +119,22 @@
         "feedback": {
           "title": "User feedback",
           "desc": "Read bug reports, feature requests, and other messages from users."
+        },
+        "tags": {
+          "title": "Tags",
+          "desc": "Manage vocabulary tags and parent-child tag hierarchy."
+        },
+        "languages": {
+          "title": "Languages",
+          "desc": "Manage languages available for vocabulary and user profiles."
+        },
+        "words": {
+          "title": "Words",
+          "desc": "Browse all vocabulary words stored in the system."
+        },
+        "translations": {
+          "title": "Translations",
+          "desc": "Create and manage translation pairs between words in different languages."
         },
         "aiUsage": {
           "title": "AI usage",
@@ -306,7 +338,7 @@
     "checkoutClosed": "Checkout was closed before payment completed.",
     "checkoutCanceled": "Payment was canceled.",
     "checkoutCanceledTitle": "Payment canceled",
-    "paymentSuccess": "Payment successful. Your subscription or points will update shortly.",
+    "paymentSuccess": "Payment successful. Your subscription will update shortly.",
     "paymentSuccessTitle": "Payment complete",
     "paymentFailed": "Payment failed. You can try again or choose another payment method.",
     "paymentFailedTitle": "Payment failed",
@@ -333,36 +365,22 @@
     "backToSubscription": "Back to subscription"
   },
   "subscription": {
-    "title": "My Subscriptions and Points",
+    "title": "My Subscription",
     "loading": "Loading subscription...",
-    "loadFailed": "Failed to load subscription and points",
+    "loadFailed": "Failed to load subscription",
     "premiumAccessUntil": "Premium access until {{date}}. Your plan will switch to Basic after that.",
     "plan": "Plan",
     "currentPeriodEnd": "Current period end",
-    "upgradeSubscription": "Upgrade Subscription",
-    "tokensSectionTitle": "Points",
-    "currentTokens": "Current points",
-    "tokensToBuy": "Amount of points to buy",
-    "tokenPackOption": "{{amount}} points - ${{price}}",
-    "tokenPackAmountLabel": "{{amount}} points",
-    "tokenPackPriceLabel": "Price for {{amount}} points",
-    "tokenDiscountBadge": "-{{percent}}%",
-    "originalPriceLabel": "Original price",
-    "premiumTokenDiscount": "Your Premium plan includes {{percent}}% off point top-ups.",
-    "buyTokens": "Buy points",
-    "buyingTokens": "Buying points...",
-    "tokensInvalidAmount": "Enter a whole number greater than 0",
-    "tokensPurchaseFailed": "Failed to purchase points"
+    "upgradeSubscription": "Upgrade Subscription"
   },
   "mySubscription": {
     "title": "My Subscription",
-    "description": "Manage your subscription and point usage.",
+    "description": "Manage your subscription.",
     "plan": "Plan",
     "statusDescription": "Your current plan is active and ready to use.",
     "nextBillingDate": "Next billing date",
     "nextBillingDateDescription": "Your next charge date appears in billing history after checkout.",
     "cancelSubscription": "Cancel subscription",
-    "buyTokens": "Buy points",
     "resumeSubscription": "Resume subscription",
     "canceling": "Canceling...",
     "resuming": "Resuming...",
@@ -379,9 +397,8 @@
         "title": "Basic",
         "price": "Free",
         "benefits": {
-          "quizGeneration": "Generate quizzes from your text",
-          "fileUploadLimit": "Upload files up to 5 MB",
-          "learningHistory": "Access quiz history and attempts",
+          "vocabBot": "Vocabulary practice in Telegram",
+          "telegramAccess": "Web profile and bot linking",
           "communitySupport": "Standard support"
         }
       },
@@ -390,20 +407,12 @@
         "priceMonthly": "{{price}} / month",
         "priceYearly": "{{price}} / year",
         "benefits": {
-          "priorityGeneration": "Priority quiz generation speed",
-          "monthlyTokens": "600 points included every month",
-          "tokenTopupDiscount": "30% discount on point top-ups",
-          "fileUploadLimit": "Upload files up to 25 MB",
-          "saveDocumentOnly": "Upload and save documents without generating a quiz",
-          "advancedCustomization": "Advanced options on Create Quiz — tune questions per chunk and preview chunk breakdown",
-          "prioritySupport": "Priority support response"
+          "prioritySupport": "Priority support response",
+          "telegramPremium": "Premium access in the Telegram bot",
+          "earlyAccess": "Early access to new learning features"
         }
       }
     }
-  },
-  "tokens": {
-    "title": "Points",
-    "description": "Points are used for quiz generation and related actions."
   },
   "qualification": {
     "title": "A few quick questions",
@@ -513,6 +522,138 @@
     "feedbackCategory": "Category",
     "feedbackMessage": "Message",
     "feedbackCreatedAt": "Submitted",
+    "tagsTitle": "Admin: Tags",
+    "tagsDescription": "Create and organize vocabulary tags. Tags can have a parent tag for hierarchy.",
+    "tagsLoading": "Loading tags...",
+    "tagsLoadFailed": "Could not load tags",
+    "tagsEmpty": "No tags yet.",
+    "tagsAdd": "Add tag",
+    "tagsAddTitle": "New tag",
+    "tagsEditTitle": "Edit tag",
+    "tagsEdit": "Edit",
+    "tagsDelete": "Delete",
+    "tagsDeleting": "Deleting...",
+    "tagsDeleteConfirm": "Delete tag \"{{name}}\"? {{count}} child tag(s) will become root tags.",
+    "tagsDeleteFailed": "Could not delete tag",
+    "tagsName": "Name",
+    "tagsParent": "Parent tag",
+    "tagsNoParent": "None (root)",
+    "tagsChildCount": "Children",
+    "tagsPairCount": "Word pairs",
+    "tagsActions": "Actions",
+    "tagsCancel": "Cancel",
+    "tagsCreate": "Create",
+    "tagsSave": "Save",
+    "tagsSaving": "Saving...",
+    "tagsSaveFailed": "Could not save tag",
+    "tagsNameRequired": "Tag name is required",
+    "tagsNameExists": "A tag with this name already exists",
+    "tagsParentNotFound": "Parent tag not found",
+    "tagsSelfParent": "A tag cannot be its own parent",
+    "tagsCycle": "This parent would create a cycle in the tag hierarchy",
+    "tagsNotFound": "Tag not found",
+    "languagesTitle": "Admin: Languages",
+    "languagesDescription": "Manage languages used in vocabulary pairs and user language settings.",
+    "languagesLoading": "Loading languages...",
+    "languagesLoadFailed": "Could not load languages",
+    "languagesEmpty": "No languages yet.",
+    "languagesAdd": "Add language",
+    "languagesAddTitle": "New language",
+    "languagesEditTitle": "Edit language",
+    "languagesEdit": "Edit",
+    "languagesDelete": "Delete",
+    "languagesDeleting": "Deleting...",
+    "languagesDeleteConfirm": "Delete language \"{{name}}\"? It has {{wordCount}} vocabulary word(s) and is used by {{userCount}} user(s).",
+    "languagesDeleteFailed": "Could not delete language",
+    "languagesName": "Name",
+    "languagesWordCount": "Vocabulary words",
+    "languagesUserCount": "Users",
+    "languagesActions": "Actions",
+    "languagesCancel": "Cancel",
+    "languagesCreate": "Create",
+    "languagesSave": "Save",
+    "languagesSaving": "Saving...",
+    "languagesSaveFailed": "Could not save language",
+    "languagesNameRequired": "Language name is required",
+    "languagesNameExists": "A language with this name already exists",
+    "languagesNotFound": "Language not found",
+    "languagesHasWords": "Cannot delete a language that has vocabulary words",
+    "wordsTitle": "Admin: Words",
+    "wordsDescription": "All vocabulary words in the shared dictionary.",
+    "wordsLoading": "Loading words...",
+    "wordsLoadFailed": "Could not load words",
+    "wordsEmpty": "No words yet.",
+    "wordsSearchPlaceholder": "Search by word or language",
+    "wordsAllLanguages": "All languages",
+    "wordsAdd": "Add word",
+    "wordsAddTitle": "New word",
+    "wordsEditTitle": "Edit word",
+    "wordsEdit": "Edit",
+    "wordsDelete": "Delete",
+    "wordsDeleting": "Deleting...",
+    "wordsDeleteConfirm": "Delete word \"{{text}}\"? It is used in {{count}} dictionary pair(s).",
+    "wordsDeleteFailed": "Could not delete word",
+    "wordsActions": "Actions",
+    "wordsCancel": "Cancel",
+    "wordsCreate": "Create",
+    "wordsSave": "Save",
+    "wordsSaving": "Saving...",
+    "wordsSaveFailed": "Could not save word",
+    "wordsTextRequired": "Word text is required",
+    "wordsLanguageRequired": "Language is required",
+    "wordsLanguageInvalid": "Invalid language",
+    "wordsLanguageNotFound": "Language not found",
+    "wordsTextExists": "This word already exists for the selected language",
+    "wordsNotFound": "Word not found",
+    "wordsLanguageLocked": "Cannot change language while the word is used in dictionary pairs",
+    "wordsLanguageLockedHint": "Language cannot be changed because this word is used in dictionary pairs.",
+    "wordsHasPairs": "Cannot delete a word that is used in dictionary pairs",
+    "dictionariesTitle": "Admin: Dictionaries",
+    "dictionariesDescription": "Translation pairs linking native and learning words.",
+    "dictionariesLoading": "Loading dictionaries...",
+    "dictionariesLoadFailed": "Could not load dictionaries",
+    "dictionariesEmpty": "No dictionary entries yet.",
+    "dictionariesSearchPlaceholder": "Search by primary or learning word",
+    "translationsTitle": "Admin: Translations",
+    "translationsDescription": "Create translation pairs linking words in two languages.",
+    "translationsLoading": "Loading translations...",
+    "translationsLoadFailed": "Could not load translations",
+    "translationsEmpty": "No translations yet.",
+    "translationsSearchPlaceholder": "Search by primary or learning word",
+    "translationsAllLanguages": "All languages",
+    "translationsAllTags": "All tags",
+    "translationsAdd": "Add translation",
+    "translationsAddTitle": "New translation",
+    "translationsEdit": "Edit",
+    "translationsEditTitle": "Edit translation",
+    "translationsFormLoading": "Loading translation…",
+    "translationsSave": "Save",
+    "translationsPrimaryLanguage": "Primary language",
+    "translationsPrimaryWord": "Primary word",
+    "translationsLearningLanguage": "Learning language",
+    "translationsLearningWord": "Learning word",
+    "translationsTags": "Tags",
+    "translationsTagsEmpty": "No tags yet. Create tags in Admin → Tags first.",
+    "translationsTagsInvalid": "Invalid tag selection",
+    "translationsTagNotFound": "One or more selected tags no longer exist",
+    "translationsDelete": "Delete",
+    "translationsDeleting": "Deleting...",
+    "translationsDeleteConfirm": "Delete translation \"{{primary}}\" → \"{{learning}}\"? {{count}} user(s) are learning it.",
+    "translationsDeleteFailed": "Could not delete translation",
+    "translationsActions": "Actions",
+    "translationsCancel": "Cancel",
+    "translationsCreate": "Create",
+    "translationsSaving": "Saving...",
+    "translationsSaveFailed": "Could not save translation",
+    "translationsTextRequired": "Both words are required",
+    "translationsLanguageRequired": "Both languages are required",
+    "translationsLanguageInvalid": "Invalid language",
+    "translationsLanguageNotFound": "Language not found",
+    "translationsLanguagesMustDiffer": "Primary and learning languages must differ",
+    "translationsWordsMustDiffer": "Primary and learning words must differ",
+    "translationsAlreadyExists": "This translation pair already exists",
+    "translationsNotFound": "Translation not found",
+    "translationsHasUsers": "Cannot delete a translation that users are learning",
     "generationSettingsTitle": "Admin: Point Settings",
     "generationSettingsDescription": "Configure signup bonus points, document chunking, point estimation, and default questions.",
     "signupBonusTokensLabel": "Free points on signup",
@@ -684,6 +825,46 @@
     "scoreFilterPass": "Passed (>= 60%)",
     "scoreFilterFail": "Failed (< 60%)"
   },
+  "dictionariesPage": {
+    "title": "My Dictionaries",
+    "description": "Vocabulary collections you own or study from.",
+    "loading": "Loading dictionaries...",
+    "loadFailed": "Could not load dictionaries",
+    "empty": "You do not have any dictionaries yet.",
+    "defaultBadge": "Default",
+    "creatorYou": "You",
+    "viewWords": "View words"
+  },
+  "wordsPage": {
+    "title": "My Words",
+    "description": "Vocabulary pairs you are learning in the Telegram bot.",
+    "loading": "Loading words...",
+    "loadFailed": "Could not load words",
+    "empty": "You have not added any words yet. Use the Telegram bot to build your vocabulary.",
+    "searchPlaceholder": "Search by word",
+    "sortAsc": "Ascending",
+    "sortDesc": "Descending",
+    "add": {
+      "open": "Add word",
+      "title": "Add word",
+      "loading": "Loading...",
+      "cancel": "Cancel",
+      "back": "Back",
+      "continue": "Continue",
+      "submit": "Add",
+      "promptPrimary": "Enter the new word in {{langName}}:",
+      "promptLearning": "Enter the new word in {{langName}}:",
+      "selectedPrimary": "Word: {{word}}",
+      "suggestionsIntro": "Translations for this word already exist. Pick one or enter your own below.",
+      "success": "Added: {{primary}} — {{learning}} (pair #{{pairId}})",
+      "failed": "Could not add word",
+      "loadLanguagesFailed": "Could not load your languages",
+      "languagesNotSet": "Set your languages in the Telegram bot first (/setLangs).",
+      "primaryRequired": "Enter a word",
+      "learningRequired": "Enter a translation",
+      "pairNotFound": "Translation option not found"
+    }
+  },
   "feedbackPage": {
     "title": "Feedback",
     "description": "Tell us what works, what does not, or what you would like to see next.",
@@ -706,6 +887,11 @@
     "title": "Your name (for quiz results)",
     "userName": "User name",
     "email": "Email",
+    "primaryLanguage": "Native language",
+    "learningLanguage": "Language you learn",
+    "languagePlaceholder": "Select a language",
+    "languagesIncomplete": "Choose both your native language and the language you learn.",
+    "languagesMustDiffer": "Native and learning languages must be different.",
     "saving": "Saving...",
     "save": "Save profile",
     "saved": "Profile saved.",
@@ -713,7 +899,31 @@
     "delete": "Delete account",
     "deleting": "Deleting...",
     "deleteConfirm": "Are you sure you want to delete your account? This action cannot be undone.",
-    "deleteFailed": "Could not delete account"
+    "deleteFailed": "Could not delete account",
+    "telegram": {
+      "title": "Telegram",
+      "description": "Link your Telegram account to use the vocabulary bot with the same profile and subscription.",
+      "loading": "Loading Telegram status...",
+      "loadFailed": "Could not load Telegram status",
+      "linkedLabel": "Linked account",
+      "linkedAsId": "ID {{id}}",
+      "unlink": "Unlink Telegram",
+      "unlinking": "Unlinking...",
+      "unlinkConfirm": "Unlink Telegram from this account? You can link it again later.",
+      "unlinked": "Telegram account unlinked.",
+      "notLinkedError": "Telegram is not linked to this account.",
+      "cannotUnlinkOnlyLogin": "Add email login before unlinking Telegram — it is your only sign-in method.",
+      "actionFailed": "Telegram action failed",
+      "linkInstructions": "Generate a one-time link, open it in Telegram, and tap Start to connect your bot account.",
+      "generateLink": "Generate Telegram link",
+      "generatingLink": "Generating link...",
+      "linkCodeReady": "Open the link below in Telegram within 15 minutes.",
+      "deepLinkMissing": "Bot username is not configured. Ask support to set TELEGRAM_BOT_USERNAME.",
+      "expiresAt": "Link expires {{date}}",
+      "copyLink": "Copy link",
+      "linkCopied": "Link copied to clipboard.",
+      "linkCopyFailed": "Could not copy the link."
+    }
   },
   "editQuiz": {
     "title": "Edit Quiz",
@@ -850,6 +1060,42 @@
       "vocabPairId": "Pair ID",
       "pimsleurLevel": "Pimsleur level",
       "nextReviewMs": "Next review (ms)"
+    },
+    "adminWords": {
+      "id": "ID",
+      "text": "Word",
+      "language": "Language",
+      "primaryPairCount": "As primary",
+      "learningPairCount": "As learning"
+    },
+    "adminDictionaries": {
+      "id": "ID",
+      "primaryWord": "Primary word",
+      "learningWord": "Learning word",
+      "userPairCount": "Users learning",
+      "tags": "Tags"
+    },
+    "adminTranslations": {
+      "id": "ID",
+      "primaryWord": "Primary word",
+      "learningWord": "Learning word",
+      "userPairCount": "Users learning",
+      "tags": "Tags"
+    },
+    "words": {
+      "primaryWord": "Native word",
+      "learningWord": "Learning word",
+      "dictionary": "Dictionary",
+      "pimsleurLevel": "Level",
+      "nextReviewMs": "Next review"
+    },
+    "dictionaries": {
+      "name": "Name",
+      "id": "ID",
+      "creator": "Creator",
+      "entryCount": "Words",
+      "createdAt": "Created",
+      "actions": "Actions"
     },
     "aiUsage": {
       "feature": "Feature",

@@ -32,11 +32,21 @@ export default defineConfig(({ mode }) => {
   const sharedEnv = loadEnv(viteEnvMode(mode), envDir, "");
   const frontendEnv = loadEnv(viteEnvMode(mode), __dirname, "");
 
+  // Prefer frontend/.env over inherited process.env (stale shell/Cursor env vars).
   const googleClientId =
-    process.env.VITE_GOOGLE_CLIENT_ID?.trim() ||
     frontendEnv.VITE_GOOGLE_CLIENT_ID?.trim() ||
     sharedEnv.VITE_GOOGLE_CLIENT_ID?.trim() ||
+    process.env.VITE_GOOGLE_CLIENT_ID?.trim() ||
+    process.env.GOOGLE_CLIENT_ID?.trim() ||
     "";
+
+  if (mode !== "prod" && !googleClientId) {
+    console.warn(
+      "[vite] VITE_GOOGLE_CLIENT_ID is empty — Google Sign-In will not work. Set it in frontend/.env",
+    );
+  } else if (mode !== "prod") {
+    console.log(`[vite] Google OAuth client: ${googleClientId.slice(0, 12)}…`);
+  }
   const paddleClientToken =
     process.env.VITE_PADDLE_CLIENT_TOKEN?.trim() ||
     frontendEnv.VITE_PADDLE_CLIENT_TOKEN?.trim() ||

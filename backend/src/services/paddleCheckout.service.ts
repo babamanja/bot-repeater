@@ -5,7 +5,6 @@ import {
 } from "../config/paddle.js";
 import * as paymentRepository from "../db/paymentRepository.js";
 import * as subscriptionRepository from "../db/subscriptionRepository.js";
-import { getEffectivePlanCodeForUser } from "./subscriptionPlan.service.js";
 import {
   buildCheckoutUrl,
   buildPaymentReturnUrl,
@@ -14,10 +13,7 @@ import {
 } from "./paymentMetadata.js";
 import {
   getSubscriptionAmount,
-  getTokenTopupAmountUsd,
   parseBillingPeriod,
-  parseTokenTopupAmount,
-  PREMIUM_TOKEN_TOPUP_DISCOUNT_PERCENT,
 } from "./paymentPricing.js";
 
 export const PADDLE_PROVIDER = "paddle";
@@ -32,7 +28,7 @@ export type CheckoutSession = {
   checkoutUrl: string;
 };
 
-export type CheckoutType = "subscription" | "token_topup";
+export type CheckoutType = "subscription";
 
 type PaddleCheckoutResponse = {
   data?: {
@@ -48,17 +44,13 @@ async function createPaddleCheckout(input: {
   userId: number;
   planCode: subscriptionRepository.SubscriptionPlanCode;
   appBaseUrl: string;
-  checkoutType: CheckoutType;
   billingPeriod: SubscriptionBillingPeriod;
-  tokenAmount?: number;
-  applyPremiumTokenDiscount?: boolean;
 }): Promise<{ checkoutUrl: string; providerTransactionId: string | null }> {
   const apiKey = getRequiredEnv("PADDLE_API_KEY");
   const priceId = getPaddlePriceId({
-    checkoutType: input.checkoutType,
+    checkoutType: "subscription",
     planCode: input.planCode,
     billingPeriod: input.billingPeriod,
-    tokenAmount: input.tokenAmount,
   });
 
   const appOrigin = normalizeAppBaseUrl(input.appBaseUrl);
@@ -81,22 +73,12 @@ async function createPaddleCheckout(input: {
           quantity: 1,
         },
       ],
-      ...(input.applyPremiumTokenDiscount
-        ? {
-            discount: {
-              description: "Premium member token top-up discount",
-              type: "percentage",
-              amount: String(PREMIUM_TOKEN_TOPUP_DISCOUNT_PERCENT),
-            },
-          }
-        : {}),
       custom_data: {
         paymentId: input.paymentId,
         userId: input.userId,
         planCode: input.planCode,
-        checkoutType: input.checkoutType,
+        checkoutType: "subscription",
         billingPeriod: input.billingPeriod,
-        tokenAmount: input.tokenAmount ?? null,
       },
       collection_mode: "automatic",
       currency_code: "USD",
@@ -145,46 +127,20 @@ export async function createCheckoutSession(
   userId: number,
   planCode: subscriptionRepository.SubscriptionPlanCode,
   appBaseUrl: string,
-  checkoutType: CheckoutType = "subscription",
-  tokenAmount?: unknown,
   billingPeriod?: unknown,
 ) {
   const normalizedBillingPeriod = parseBillingPeriod(billingPeriod);
-  const normalizedTokenAmount =
-    checkoutType === "token_topup"
-      ? parseTokenTopupAmount(tokenAmount)
-      : undefined;
-  const applyPremiumTokenDiscount =
-    checkoutType === "token_topup" &&
-    (await getEffectivePlanCodeForUser(userId)) === "premium";
-  const amount =
-    checkoutType === "subscription"
-      ? getSubscriptionAmount(planCode, normalizedBillingPeriod)
-      : getTokenTopupAmountUsd(
-          normalizedTokenAmount!,
-          applyPremiumTokenDiscount,
-        );
+  const amount = getSubscriptionAmount(planCode, normalizedBillingPeriod);
   const payment = await paymentRepository.createPendingSubscriptionPayment({
     userId,
     amount,
     currency: "USD",
     provider: PADDLE_PROVIDER,
-    description:
-      checkoutType === "subscription"
-        ? `${planCode} ${normalizedBillingPeriod} subscription checkout`
-        : `${normalizedTokenAmount} tokens topup checkout`,
+    description: `${planCode} ${normalizedBillingPeriod} subscription checkout`,
     metadata: {
-      flow:
-        checkoutType === "subscription"
-          ? "subscription_checkout"
-          : "token_topup_checkout",
+      flow: "subscription_checkout",
       planCode,
       billingPeriod: normalizedBillingPeriod,
-      tokenAmount: normalizedTokenAmount,
-      premiumDiscountApplied: applyPremiumTokenDiscount,
-      premiumDiscountPercent: applyPremiumTokenDiscount
-        ? PREMIUM_TOKEN_TOPUP_DISCOUNT_PERCENT
-        : null,
     },
   });
 
@@ -195,10 +151,7 @@ export async function createCheckoutSession(
     userId,
     planCode,
     appBaseUrl,
-    checkoutType,
     billingPeriod: normalizedBillingPeriod,
-    tokenAmount: normalizedTokenAmount,
-    applyPremiumTokenDiscount,
   });
   checkoutUrl = paddleCheckout.checkoutUrl;
   providerTransactionId = paddleCheckout.providerTransactionId;

@@ -11,7 +11,6 @@ import userRoutes from "./routes/user.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import subscriptionRoutes from "./routes/subscription.routes.js";
-import tokenRoutes from "./routes/token.routes.js";
 import qualificationRoutes from "./routes/qualification.routes.js";
 import feedbackRoutes from "./routes/feedback.routes.js";
 import telegramRoutes from "./routes/telegram.routes.js";
@@ -100,7 +99,6 @@ export function createApp() {
   app.use("/api/users", userRoutes);
   app.use("/api/auth", authRoutes);
   app.use("/api/subscriptions", subscriptionRoutes);
-  app.use("/api/tokens", tokenRoutes);
   app.use("/api/qualification", qualificationRoutes);
   app.use("/api/feedback", feedbackRoutes);
   app.use("/api/telegram", telegramRoutes);

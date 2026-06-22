@@ -1,6 +1,6 @@
 {
   "legal": {
-    "brand": "QuizBuddy",
+    "brand": "Language Turtle",
     "backToHome": "Back to home",
     "lastUpdated": "Last updated: {{date}}",
     "relatedLabel": "Related policies",
@@ -137,9 +137,9 @@
           ]
         },
         {
-          "title": "4. Subscriptions, points, and payments",
+          "title": "4. Subscriptions and payments",
           "paragraphs": [
-            "Some features require a paid plan, subscription, or point balance. Prices, billing intervals, and included features are shown at checkout or in the product and may change with notice where required.",
+            "Some features require a paid plan or subscription. Prices, billing intervals, and included features are shown at checkout or in the product and may change with notice where required.",
             "Payments are processed by third-party payment providers. By purchasing a plan, you authorize us and our payment partners to charge the applicable fees, taxes, and recurring amounts until you cancel in accordance with the billing terms presented at purchase.",
             "Except where required by law, fees are non-refundable once a billing period has started. We may suspend or limit access if payment fails."
           ]
@@ -237,7 +237,7 @@
         {
           "title": "1. Overview",
           "paragraphs": [
-            "This Refund Policy explains how refunds work for paid subscriptions, point purchases, and other charges on QuizBuddy (\"we\", \"us\", or \"our\").",
+            "This Refund Policy explains how refunds work for paid subscriptions and other charges on QuizBuddy (\"we\", \"us\", or \"our\").",
             "By making a purchase, you also agree to our Terms of Service. If this policy conflicts with mandatory consumer protection laws in your country, those laws prevail."
           ]
         },
@@ -257,14 +257,7 @@
           ]
         },
         {
-          "title": "4. Point packs and one-time purchases",
-          "paragraphs": [
-            "Point packs and other one-time purchases are delivered digitally when payment succeeds. Except where required by law, these purchases are non-refundable once points have been credited to your account or used.",
-            "If a technical error prevented delivery of purchased points or paid features, contact us promptly with your account email and order details so we can investigate."
-          ]
-        },
-        {
-          "title": "5. When we may issue a refund",
+          "title": "4. When we may issue a refund",
           "paragraphs": ["We may approve a refund (full or partial) at our discretion, or where required by law, in situations such as:"],
           "list": [
             "Duplicate charges or billing errors confirmed on our side or by the payment processor.",
@@ -274,33 +267,33 @@
           ]
         },
         {
-          "title": "6. Free trials and promotions",
+          "title": "5. Free trials and promotions",
           "paragraphs": [
             "From time to time we may offer free trials or promotional pricing. When a trial converts to a paid plan, standard billing and refund rules apply to charges after conversion unless stated otherwise in the offer terms.",
             "Promotional or discounted prices may not be eligible for partial refunds based on the difference between promotional and regular pricing."
           ]
         },
         {
-          "title": "7. How to request a refund",
+          "title": "6. How to request a refund",
           "paragraphs": [
             "To request a refund, email refunds@quizbuddy.io from the email address associated with your account. Include your full name, the date of purchase, the amount charged, and a brief description of the issue.",
             "We aim to respond within a reasonable time. Approved refunds are issued to the original payment method; processing times depend on your bank or card issuer and may take several business days."
           ]
         },
         {
-          "title": "8. Chargebacks",
+          "title": "7. Chargebacks",
           "paragraphs": [
             "If you dispute a charge with your bank or card issuer before contacting us, we may suspend your account while the dispute is investigated. Providing false or abusive chargeback claims may result in permanent account closure."
           ]
         },
         {
-          "title": "9. Changes to this policy",
+          "title": "8. Changes to this policy",
           "paragraphs": [
             "We may update this Refund Policy from time to time. The \"Last updated\" date at the top of this page will change when we do. Material changes may also be communicated through the Service or by email where appropriate."
           ]
         },
         {
-          "title": "10. Contact",
+          "title": "9. Contact",
           "paragraphs": [
             "Questions about refunds may be sent to refunds@quizbuddy.io. For general legal inquiries, see our Terms of Service."
           ]

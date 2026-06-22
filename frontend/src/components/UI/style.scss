@@ -71,7 +71,7 @@
     display: none;
     justify-content: center;
     align-items: center;
-    color: red;
+    color: $color-success;
     &--checked {
       display: flex;
     }

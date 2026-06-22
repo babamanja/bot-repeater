@@ -15,6 +15,14 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+:root {
+  --color-primary: #{$color-primary};
+  --color-primary-hover: #{$color-primary-hover};
+  --color-accent: #{$color-accent};
+  --color-bg: #{$color-bg};
+  --color-panel: #{$color-panel};
+}
+
 #root {
   min-height: 100vh;
   margin: 0;

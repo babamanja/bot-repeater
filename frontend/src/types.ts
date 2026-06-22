@@ -1,5 +1,9 @@
 export type UserDashboardStats = {
   vocabPairCount: number;
+  dictionaryCount: number;
+  dueWordCount: number;
+  primaryLanguage: string | null;
+  learningLanguage: string | null;
 };
 
 export type User = {
@@ -11,6 +15,8 @@ export type User = {
   emailVerified?: boolean;
   /** Temporary guest account before signup. */
   isGuest?: boolean;
+  primaryLanguageId?: number | null;
+  learningLanguageId?: number | null;
 };
 
 export type AuthSession = {

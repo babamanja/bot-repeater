@@ -1,7 +1,6 @@
 import * as adminRepository from "../db/adminRepository.js";
 import * as paymentRepository from "../db/paymentRepository.js";
 import * as subscriptionRepository from "../db/subscriptionRepository.js";
-import * as tokenRepository from "../db/tokenRepository.js";
 
 export async function listUsers(input: adminRepository.AdminUsersListQuery) {
   const result = await adminRepository.selectAdminUsers(input);
@@ -45,11 +44,9 @@ export async function getUserDetails(userId: number) {
         google: row.hasGoogle,
         telegram: row.hasTelegram,
       },
-      tokenBalance: row.tokenBalance,
       vocabPairCount: row.vocabPairCount,
       subscription: row.subscription,
       recentPayments: row.recentPayments,
-      recentTokenLedger: row.recentTokenLedger,
     },
   };
 }
@@ -114,51 +111,6 @@ export async function grantPremiumSubscriptionByAdmin(input: {
       ok: false as const,
       status: 500,
       error: "failed to grant premium subscription",
-    };
-  }
-}
-
-export async function adjustUserTokensByAdmin(input: {
-  userId: number;
-  adminUserId: number;
-  delta: unknown;
-  comment: unknown;
-}) {
-  const delta = Number(input.delta);
-  if (!Number.isInteger(delta) || delta === 0) {
-    return {
-      ok: false as const,
-      status: 400,
-      error: "delta must be a non-zero integer",
-    };
-  }
-
-  const comment = typeof input.comment === "string" ? input.comment.trim() : "";
-  if (!comment) {
-    return { ok: false as const, status: 400, error: "comment is required" };
-  }
-
-  try {
-    const result = await tokenRepository.adjustTokensForUser({
-      userId: input.userId,
-      delta,
-      comment,
-      adminUserId: input.adminUserId,
-    });
-    return { ok: true as const, balance: Number(result.balance) };
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "failed to adjust tokens";
-    if (message === "insufficient token balance") {
-      return { ok: false as const, status: 400, error: message };
-    }
-    if (message === "user not found") {
-      return { ok: false as const, status: 404, error: message };
-    }
-    return {
-      ok: false as const,
-      status: 500,
-      error: "failed to adjust tokens",
     };
   }
 }
@@ -316,6 +268,34 @@ export async function listUserPairs(input: adminRepository.AdminUserPairsListQue
   return {
     ok: true as const,
     userPairs: result.rows,
+    pagination: {
+      page: input.page,
+      pageSize: input.pageSize,
+      total: result.total,
+      totalPages: Math.max(1, Math.ceil(result.total / input.pageSize)),
+    },
+  };
+}
+
+export async function listVocabWords(input: adminRepository.AdminVocabWordsListQuery) {
+  const result = await adminRepository.selectAdminVocabWords(input);
+  return {
+    ok: true as const,
+    words: result.rows,
+    pagination: {
+      page: input.page,
+      pageSize: input.pageSize,
+      total: result.total,
+      totalPages: Math.max(1, Math.ceil(result.total / input.pageSize)),
+    },
+  };
+}
+
+export async function listDictionaries(input: adminRepository.AdminDictionariesListQuery) {
+  const result = await adminRepository.selectAdminDictionaries(input);
+  return {
+    ok: true as const,
+    dictionaries: result.rows,
     pagination: {
       page: input.page,
       pageSize: input.pageSize,

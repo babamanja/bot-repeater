@@ -5,7 +5,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import PaymentResultView, { formatPaymentFailureReason } from "./PaymentResultView";
 import { trackAnalyticsEvent } from "../../analytics";
 import { getMyPaymentStatus, type SubscriptionPayment } from "../../api/subscription";
-import { refreshMyTokenBalance } from "../../api/tokens";
 import Button from "../../components/UI/Button/Button";
 import {
   paymentCheckoutPath,
@@ -79,10 +78,6 @@ export default function PaymentResultPage({ outcome }: PaymentResultPageProps) {
       }
 
       setPayment(row);
-
-      if (row.status === "succeeded") {
-        void refreshMyTokenBalance();
-      }
 
       emitOutcomeAnalytics(row);
     } catch (error) {

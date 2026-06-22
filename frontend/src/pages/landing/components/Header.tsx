@@ -87,12 +87,6 @@ export function Header({ onOpenAuth }: HeaderProps) {
   const closeMenu = () => setMenuOpen(false)
   const closeUserMenu = () => setUserMenuOpen(false)
 
-  const openLogin = () => {
-    trackUiCtaClick('landing_header_login')
-    onOpenAuth('login')
-    closeMenu()
-  }
-
   async function handleLogOut() {
     closeUserMenu()
     closeMenu()
@@ -109,10 +103,10 @@ export function Header({ onOpenAuth }: HeaderProps) {
     isNarrow && !menuOpen ? ({ tabIndex: -1 as const } as const) : {}
 
   const menuLinks = [
-    { href: '#benefits', text: t('landing.nav.benefits') },
     { href: '#how-it-works', text: t('landing.nav.howItWorks') },
+    { href: '#features', text: t('landing.nav.features') },
     { href: '#pricing', text: t('landing.nav.pricing') },
-    { href: '#faq', text: t('landing.nav.faq') },
+    { href: '#about', text: t('landing.nav.about') },
   ]
 
   const userLabel = displayName(user?.userName, user?.email)
@@ -125,7 +119,8 @@ export function Header({ onOpenAuth }: HeaderProps) {
     <header className="qb-header">
       <div className="qb-header__inner">
         <a className="qb-logo" href="#top" onClick={closeMenu}>
-          {t('landing.nav.brand')}
+          <img className="qb-logo__icon" src="/landing/logo-icon.png" alt="" width={28} height={28} />
+          <span>{t('landing.nav.brand')}</span>
         </a>
         <nav
           id={menuId}
@@ -147,11 +142,15 @@ export function Header({ onOpenAuth }: HeaderProps) {
             <Button
               style="primary"
               className="qb-header__cta qb-header__cta--menu"
-              data-cta-id="landing_header_login_menu"
-              onClick={openLogin}
+              data-cta-id="landing_header_signup_menu"
+              onClick={() => {
+                trackUiCtaClick('landing_header_signup_menu')
+                onOpenAuth('signup')
+                closeMenu()
+              }}
               {...linkTabIndex}
             >
-              {t('auth.logIn')}
+              {t('landing.nav.cta')}
             </Button>
           ) : null}
         </nav>
@@ -220,10 +219,13 @@ export function Header({ onOpenAuth }: HeaderProps) {
             <Button
               style="primary"
               className="qb-header__cta"
-              data-cta-id="landing_header_login"
-              onClick={openLogin}
+              data-cta-id="landing_header_signup"
+              onClick={() => {
+                trackUiCtaClick('landing_header_signup')
+                onOpenAuth('signup')
+              }}
             >
-              {t('auth.logIn')}
+              {t('landing.nav.cta')}
             </Button>
           )}
         </div>

@@ -31,6 +31,10 @@
     "./contentSecurityPolicy": {
       "types": "./dist/contentSecurityPolicy.d.ts",
       "import": "./dist/contentSecurityPolicy.js"
+    },
+    "./vocabPair": {
+      "types": "./dist/vocabPair.d.ts",
+      "import": "./dist/vocabPair.js"
     }
   },
   "scripts": {

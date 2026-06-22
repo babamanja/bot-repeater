@@ -1,27 +1,37 @@
-// QuizBuddy-aligned design tokens (see https://quizbuddy.io/)
+// Language Turtle design tokens
 
 // ---------------------------------------------------------------------------
 // Colors
 // ---------------------------------------------------------------------------
 
-$color-text: #0f172a;
-$color-text-muted: #64748b;
-$color-primary: #1e6fe3;
-$color-primary-hover: #1660d4;
-$color-primary-soft: rgba(30, 111, 227, 0.12);
-$color-success: #3cb82e;
-$color-success-hover: #319d27;
-$color-success-soft: rgba(60, 184, 46, 0.14);
-$color-warm: #f4b23e;
-$color-warm-soft: rgba(244, 178, 62, 0.22);
-$color-error: #e63e3e;
-$color-border: #e2e8f0;
+$color-text: #243a20;
+$color-text-muted: #5c6b57;
+$color-primary: #2d4628;
+$color-primary-hover: #243a20;
+$color-primary-soft: rgba(45, 70, 40, 0.12);
+$color-accent: #8cb369;
+$color-accent-hover: #7aa35a;
+$color-accent-soft: rgba(140, 179, 105, 0.22);
+$color-panel: #edf4e8;
+$color-success: #5a8f4e;
+$color-success-hover: #4d7d43;
+$color-success-soft: rgba(90, 143, 78, 0.16);
+$color-success-text: #2d5a28;
+$color-warm: #c9a227;
+$color-warm-soft: rgba(201, 162, 39, 0.2);
+$color-info: #4a6b40;
+$color-info-soft: #e8f0e4;
+$color-info-border: #b5cfa8;
+$color-error: #c53d3d;
+$color-error-soft: #fce8e8;
+$color-error-text: #9f2f2f;
+$color-border: #d8e4d2;
 $color-surface: #fff;
-$color-bg: #f7f9fc;
+$color-bg: #f9fbf7;
 
-// Brand gradients (landing hero / panels)
-$color-brand-gradient-mid: #1358c4;
-$color-brand-gradient-end: #2a7a6e;
+// Brand gradients (hero / panels)
+$color-brand-gradient-mid: #4a7a42;
+$color-brand-gradient-end: #8cb369;
 
 // ---------------------------------------------------------------------------
 // Breakpoints (sync with constants/breakpoints.ts)
@@ -86,18 +96,17 @@ $radius-md: 16px;
 $radius-lg: 24px;
 $radius-pill: 9999px;
 
-$shadow-card: 0 4px 24px rgba(15, 23, 42, 0.06);
-$shadow-card-hover: 0 8px 32px rgba(15, 23, 42, 0.1);
+$shadow-card: 0 4px 24px rgba(36, 58, 32, 0.06);
+$shadow-card-hover: 0 8px 32px rgba(36, 58, 32, 0.1);
 
 // ---------------------------------------------------------------------------
 // Component tokens
 // ---------------------------------------------------------------------------
 
-// Landing hero: CTA button anchored on mascot (tweak per art)
 $landing-hero-cta-left: 48%;
 $landing-hero-cta-top: 175px;
 
-$quiz-option-accents: #a713d4, #694ee4, #613891, #bb60f8;
+$quiz-option-accents: #5a8f4e, #6fa060, #4a7a42, #8cb369;
 
 $btn-primary-background: $color-primary;
 $btn-primary-color: $color-surface;

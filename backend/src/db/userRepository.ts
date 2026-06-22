@@ -1,3 +1,6 @@
+import { Prisma } from "@prisma/client";
+import { resolvePairWordsForUser } from "@vocab-bot/shared/vocabPair";
+import * as dictionaryRepository from "./dictionaryRepository.js";
 import { getPrisma } from "./prisma.js";
 
 export type UserRow = {
@@ -7,6 +10,8 @@ export type UserRow = {
   role: "user" | "admin";
   email_verified_at: Date | null;
   is_guest: boolean;
+  primary_language_id: number | null;
+  learning_language_id: number | null;
 };
 
 function toRow(u: {
@@ -16,6 +21,8 @@ function toRow(u: {
   role: string;
   emailVerifiedAt: Date | null;
   isGuest: boolean;
+  primaryLanguageId: number | null;
+  learningLanguageId: number | null;
 }): UserRow {
   return {
     id: u.id,
@@ -24,6 +31,8 @@ function toRow(u: {
     role: u.role === "admin" ? "admin" : "user",
     email_verified_at: u.emailVerifiedAt,
     is_guest: u.isGuest,
+    primary_language_id: u.primaryLanguageId,
+    learning_language_id: u.learningLanguageId,
   };
 }
 
@@ -42,7 +51,12 @@ export async function selectUserById(id: number): Promise<UserRow | null> {
 
 export async function updateUserById(
   id: number,
-  input: { userName: string; email: string },
+  input: {
+    userName: string;
+    email: string;
+    primaryLanguageId?: number | null;
+    learningLanguageId?: number | null;
+  },
 ): Promise<UserRow> {
   const prisma = getPrisma();
   const existing = await prisma.user.findUnique({ where: { id } });
@@ -57,6 +71,12 @@ export async function updateUserById(
       userName: input.userName.trim(),
       email: nextEmail,
       ...(emailChanged ? { emailVerifiedAt: null } : {}),
+      ...(input.primaryLanguageId !== undefined
+        ? { primaryLanguageId: input.primaryLanguageId }
+        : {}),
+      ...(input.learningLanguageId !== undefined
+        ? { learningLanguageId: input.learningLanguageId }
+        : {}),
     },
   });
   return toRow(u);
@@ -102,4 +122,107 @@ export async function restoreSoftDeletedUser(id: number): Promise<boolean> {
     },
   });
   return true;
+}
+
+export type UserWordRow = {
+  vocabPairId: number;
+  dictionaryId: number;
+  dictionaryName: string;
+  primaryWord: string;
+  learningWord: string;
+  pimsleurLevel: number;
+  nextReviewMs: string;
+};
+
+export type UserWordsListQuery = {
+  userId: number;
+  page: number;
+  pageSize: number;
+  sortBy: "nextReviewMs" | "pimsleurLevel" | "primaryWord";
+  sortOrder: "asc" | "desc";
+  search?: string;
+};
+
+export async function selectUserWords(
+  input: UserWordsListQuery,
+): Promise<{ rows: UserWordRow[]; total: number }> {
+  const user = await getPrisma().user.findUnique({
+    where: { id: input.userId },
+    select: { primaryLanguageId: true, learningLanguageId: true },
+  });
+  if (user?.primaryLanguageId == null || user.learningLanguageId == null) {
+    return { rows: [], total: 0 };
+  }
+
+  await dictionaryRepository.ensureDefaultDictionaryForUser(input.userId);
+
+  const searchFilter: Prisma.DictionaryEntryWhereInput | undefined = input.search
+    ? {
+        OR: [
+          { vocabPair: { wordA: { text: { contains: input.search, mode: "insensitive" } } } },
+          { vocabPair: { wordB: { text: { contains: input.search, mode: "insensitive" } } } },
+        ],
+      }
+    : undefined;
+
+  const where: Prisma.DictionaryEntryWhereInput = {
+    dictionary: {
+      members: { some: { userId: input.userId } },
+    },
+    ...(searchFilter ?? {}),
+  };
+
+  const orderBy =
+    input.sortBy === "pimsleurLevel"
+      ? { pimsleurLevel: input.sortOrder }
+      : input.sortBy === "primaryWord"
+        ? { vocabPair: { wordA: { text: input.sortOrder } } }
+        : input.sortOrder === "asc"
+          ? { nextReviewMs: "asc" as const }
+          : { nextReviewMs: "desc" as const };
+
+  const [rows, total] = await Promise.all([
+    getPrisma().dictionaryEntry.findMany({
+      where,
+      orderBy,
+      skip: (input.page - 1) * input.pageSize,
+      take: input.pageSize,
+      include: {
+        dictionary: { select: { id: true, name: true } },
+        vocabPair: {
+          include: {
+            wordA: { select: { text: true, languageId: true } },
+            wordB: { select: { text: true, languageId: true } },
+          },
+        },
+      },
+    }),
+    getPrisma().dictionaryEntry.count({ where }),
+  ]);
+
+  return {
+    rows: rows.flatMap((row) => {
+      const resolved = resolvePairWordsForUser(
+        row.vocabPair.wordA,
+        row.vocabPair.wordB,
+        user.primaryLanguageId!,
+        user.learningLanguageId!,
+      );
+      if (!resolved) {
+        return [];
+      }
+      return [
+        {
+          vocabPairId: row.vocabPairId,
+          dictionaryId: row.dictionary.id,
+          dictionaryName: row.dictionary.name,
+          primaryWord: resolved.primaryWord.text,
+          learningWord: resolved.learningWord.text,
+          pimsleurLevel: row.pimsleurLevel,
+          nextReviewMs: row.nextReviewMs.toString(),
+        },
+      ];
+    }),
+    total,
+  };
 }

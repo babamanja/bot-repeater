@@ -23,7 +23,7 @@ export default function AdminUsersPage() {
   const [pagination, setPagination] = useState<PaginationMeta>(DEFAULT_PAGINATION);
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<"" | "user" | "admin">("");
-  const [sortBy, setSortBy] = useState<"id" | "userName" | "email" | "role" | "tokenBalance">("id");
+  const [sortBy, setSortBy] = useState<"id" | "userName" | "email" | "role">("id");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const loadUsers = useCallback(
@@ -137,7 +137,6 @@ export default function AdminUsersPage() {
           <option value="userName">userName</option>
           <option value="email">email</option>
           <option value="role">role</option>
-          <option value="tokenBalance">{t("admin.usersSortPointBalance")}</option>
         </select>
         <select
           className="text-input"

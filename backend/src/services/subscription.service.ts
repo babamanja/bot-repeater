@@ -101,16 +101,12 @@ export async function createMyCheckoutSession(
   userId: number,
   planCode: subscriptionRepository.SubscriptionPlanCode,
   appBaseUrl: string,
-  checkoutType: "subscription" | "token_topup" = "subscription",
-  tokenAmount?: unknown,
   billingPeriod?: unknown,
 ) {
   return await paymentService.createCheckoutSession(
     userId,
     planCode,
     appBaseUrl,
-    checkoutType,
-    tokenAmount,
     billingPeriod,
   );
 }

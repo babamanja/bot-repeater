@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { getPrisma } from "./prisma.js";
+import { mapTranslationRow, translationSelect } from "./vocabPairRepository.js";
 
 export type AdminUserRow = {
   id: number;
@@ -16,7 +17,7 @@ export type AdminUserRow = {
 export type AdminUsersListQuery = {
   page: number;
   pageSize: number;
-  sortBy: "id" | "userName" | "email" | "role" | "tokenBalance";
+  sortBy: "id" | "userName" | "email" | "role";
   sortOrder: "asc" | "desc";
   role?: "user" | "admin";
   search?: string;
@@ -31,7 +32,6 @@ export type AdminUserDetailsRow = {
   hasPassword: boolean;
   hasGoogle: boolean;
   hasTelegram: boolean;
-  tokenBalance: number;
   vocabPairCount: number;
   subscription: {
     id: string;
@@ -49,20 +49,6 @@ export type AdminUserDetailsRow = {
     status: "pending" | "succeeded" | "failed" | "refunded";
     transactionType: "payment" | "refund";
     provider: string | null;
-  }>;
-  recentTokenLedger: Array<{
-    id: string;
-    delta: number;
-    balanceAfter: number | null;
-    transactionType:
-      | "purchase"
-      | "spend"
-      | "refund"
-      | "bonus"
-      | "expire"
-      | "admin_adjustment";
-    referenceId: string | null;
-    createdAt: string;
   }>;
 };
 
@@ -135,8 +121,19 @@ export async function selectAdminUsers(input: AdminUsersListQuery): Promise<{
         auth: true,
         _count: {
           select: {
-            userPairs: true,
+            userDictionaries: true,
           },
+        },
+        userDictionaries: {
+          where: { isDefault: true },
+          select: {
+            dictionary: {
+              select: {
+                _count: { select: { entries: true } },
+              },
+            },
+          },
+          take: 1,
         },
       },
     }),
@@ -153,7 +150,7 @@ export async function selectAdminUsers(input: AdminUsersListQuery): Promise<{
       hasPassword: Boolean(row.auth?.passwordHash),
       hasGoogle: Boolean(row.auth?.googleSub),
       hasTelegram: row.telegramId != null,
-      vocabPairCount: row._count.userPairs,
+      vocabPairCount: row.userDictionaries[0]?.dictionary._count.entries ?? 0,
     })),
     total,
   };
@@ -171,14 +168,21 @@ export async function selectAdminUserDetailsById(
         orderBy: { date: "desc" },
         take: 10,
       },
-      tokenLedgerEntries: {
-        orderBy: { createdAt: "desc" },
-        take: 10,
-      },
       _count: {
         select: {
-          userPairs: true,
+          userDictionaries: true,
         },
+      },
+      userDictionaries: {
+        where: { isDefault: true },
+        select: {
+          dictionary: {
+            select: {
+              _count: { select: { entries: true } },
+            },
+          },
+        },
+        take: 1,
       },
     },
   });
@@ -196,8 +200,7 @@ export async function selectAdminUserDetailsById(
     hasPassword: Boolean(row.auth?.passwordHash),
     hasGoogle: Boolean(row.auth?.googleSub),
     hasTelegram: row.telegramId != null,
-    tokenBalance: Number(row.tokenBalance),
-    vocabPairCount: row._count.userPairs,
+    vocabPairCount: row.userDictionaries[0]?.dictionary._count.entries ?? 0,
     subscription: row.subscription
       ? {
           id: row.subscription.id,
@@ -218,15 +221,6 @@ export async function selectAdminUserDetailsById(
       status: payment.status,
       transactionType: payment.transactionType,
       provider: payment.provider,
-    })),
-    recentTokenLedger: row.tokenLedgerEntries.map((entry) => ({
-      id: entry.id,
-      delta: Number(entry.delta),
-      balanceAfter:
-        entry.balanceAfter != null ? Number(entry.balanceAfter) : null,
-      transactionType: entry.transactionType,
-      referenceId: entry.referenceId,
-      createdAt: entry.createdAt.toISOString(),
     })),
   };
 }
@@ -361,22 +355,29 @@ export type AdminUserPairsListQuery = {
 export async function selectAdminUserPairs(
   input: AdminUserPairsListQuery,
 ): Promise<{ rows: AdminUserPairRow[]; total: number }> {
-  const where: Prisma.UserPairWhereInput = input.search
-    ? {
-        OR: [
-          {
-            user: {
-              userName: { contains: input.search, mode: "insensitive" },
-            },
+  const memberFilter: Prisma.UserDictionaryWhereInput = {
+    isDefault: true,
+    ...(input.search
+      ? {
+          user: {
+            OR: [
+              {
+                userName: { contains: input.search, mode: "insensitive" },
+              },
+              {
+                email: { contains: input.search, mode: "insensitive" },
+              },
+            ],
           },
-          {
-            user: {
-              email: { contains: input.search, mode: "insensitive" },
-            },
-          },
-        ],
-      }
-    : {};
+        }
+      : {}),
+  };
+
+  const where: Prisma.DictionaryEntryWhereInput = {
+    dictionary: {
+      members: { some: memberFilter },
+    },
+  };
 
   const orderBy =
     input.sortBy === "pimsleurLevel"
@@ -386,28 +387,201 @@ export async function selectAdminUserPairs(
         : { nextReviewMs: "desc" as const };
 
   const [rows, total] = await Promise.all([
-    getPrisma().userPair.findMany({
+    getPrisma().dictionaryEntry.findMany({
       where,
       orderBy,
       skip: (input.page - 1) * input.pageSize,
       take: input.pageSize,
       include: {
-        user: { select: { id: true, userName: true, email: true } },
+        dictionary: {
+          include: {
+            members: {
+              where: { isDefault: true },
+              include: {
+                user: { select: { id: true, userName: true, email: true } },
+              },
+              take: 1,
+            },
+          },
+        },
       },
     }),
-    getPrisma().userPair.count({ where }),
+    getPrisma().dictionaryEntry.count({ where }),
+  ]);
+
+  return {
+    rows: rows.flatMap((row) => {
+      const user = row.dictionary.members[0]?.user;
+      if (!user) {
+        return [];
+      }
+      return [
+        {
+          id: `${user.id}:${row.vocabPairId}`,
+          userId: user.id,
+          userName: user.userName,
+          email: user.email,
+          vocabPairId: row.vocabPairId,
+          pimsleurLevel: row.pimsleurLevel,
+          nextReviewMs: row.nextReviewMs.toString(),
+        },
+      ];
+    }),
+    total,
+  };
+}
+
+export type AdminVocabWordRow = {
+  id: number;
+  text: string;
+  languageId: number;
+  languageName: string;
+  primaryPairCount: number;
+  learningPairCount: number;
+};
+
+export type AdminVocabWordsListQuery = {
+  page: number;
+  pageSize: number;
+  sortBy: "id" | "text" | "language";
+  sortOrder: "asc" | "desc";
+  search?: string;
+  languageId?: number;
+};
+
+export async function selectAdminVocabWords(
+  input: AdminVocabWordsListQuery,
+): Promise<{ rows: AdminVocabWordRow[]; total: number }> {
+  const where: Prisma.VocabWordWhereInput = {
+    ...(input.languageId != null ? { languageId: input.languageId } : {}),
+    ...(input.search
+      ? {
+          OR: [
+            { text: { contains: input.search, mode: "insensitive" } },
+            {
+              language: {
+                name: { contains: input.search, mode: "insensitive" },
+              },
+            },
+          ],
+        }
+      : {}),
+  };
+
+  const orderBy =
+    input.sortBy === "text"
+      ? { text: input.sortOrder }
+      : input.sortBy === "language"
+        ? { language: { name: input.sortOrder } }
+        : { id: input.sortOrder };
+
+  const [rows, total] = await Promise.all([
+    getPrisma().vocabWord.findMany({
+      where,
+      orderBy,
+      skip: (input.page - 1) * input.pageSize,
+      take: input.pageSize,
+      select: {
+        id: true,
+        text: true,
+        languageId: true,
+        language: { select: { name: true } },
+        _count: { select: { pairsAsWordA: true, pairsAsWordB: true } },
+      },
+    }),
+    getPrisma().vocabWord.count({ where }),
   ]);
 
   return {
     rows: rows.map((row) => ({
-      id: `${row.userId}:${row.vocabPairId}`,
-      userId: row.userId,
-      userName: row.user.userName,
-      email: row.user.email,
-      vocabPairId: row.vocabPairId,
-      pimsleurLevel: row.pimsleurLevel,
-      nextReviewMs: row.nextReviewMs.toString(),
+      id: row.id,
+      text: row.text,
+      languageId: row.languageId,
+      languageName: row.language.name,
+      primaryPairCount: row._count.pairsAsWordA,
+      learningPairCount: row._count.pairsAsWordB,
     })),
+    total,
+  };
+}
+
+export type AdminDictionaryRow = {
+  id: number;
+  primaryWord: string;
+  primaryLanguage: string;
+  learningWord: string;
+  learningLanguage: string;
+  primaryLanguageId: number;
+  learningLanguageId: number;
+  userPairCount: number;
+  tagIds: number[];
+  tagNames: string[];
+};
+
+export type AdminDictionariesListQuery = {
+  page: number;
+  pageSize: number;
+  sortBy: "id" | "primaryWord" | "learningWord" | "userPairCount";
+  sortOrder: "asc" | "desc";
+  search?: string;
+  primaryLanguageId?: number;
+  tagId?: number;
+};
+
+export async function selectAdminDictionaries(
+  input: AdminDictionariesListQuery,
+): Promise<{ rows: AdminDictionaryRow[]; total: number }> {
+  const andFilters: Prisma.VocabPairWhereInput[] = [];
+
+  if (input.search) {
+    andFilters.push({
+      OR: [
+        { wordA: { text: { contains: input.search, mode: "insensitive" } } },
+        { wordB: { text: { contains: input.search, mode: "insensitive" } } },
+      ],
+    });
+  }
+
+  if (input.primaryLanguageId != null) {
+    andFilters.push({
+      OR: [
+        { wordA: { languageId: input.primaryLanguageId } },
+        { wordB: { languageId: input.primaryLanguageId } },
+      ],
+    });
+  }
+
+  if (input.tagId != null) {
+    andFilters.push({
+      tags: { some: { tagId: input.tagId } },
+    });
+  }
+
+  const where: Prisma.VocabPairWhereInput =
+    andFilters.length > 0 ? { AND: andFilters } : {};
+
+  const orderBy =
+    input.sortBy === "primaryWord"
+      ? { wordA: { text: input.sortOrder } }
+      : input.sortBy === "learningWord"
+        ? { wordB: { text: input.sortOrder } }
+        : input.sortBy === "userPairCount"
+          ? { dictionaryEntries: { _count: input.sortOrder } }
+          : { id: input.sortOrder };
+
+  const [rows, total] = await Promise.all([
+    getPrisma().vocabPair.findMany({
+      where,
+      orderBy,
+      skip: (input.page - 1) * input.pageSize,
+      take: input.pageSize,
+      select: translationSelect,
+    }),
+    getPrisma().vocabPair.count({ where }),
+  ]);
+
+  return {
+    rows: rows.map((row) => mapTranslationRow(row, input.primaryLanguageId)),
     total,
   };
 }

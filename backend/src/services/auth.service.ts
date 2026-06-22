@@ -10,8 +10,8 @@ import {
   sendEmailVerificationEmail,
   sendPasswordResetEmail,
 } from "./postmarkEmail.service.js";
-import { grantSignupBonusTokens } from "./signupBonus.service.js";
 import * as subscriptionRepository from "../db/subscriptionRepository.js";
+import * as dictionaryRepository from "../db/dictionaryRepository.js";
 import {
   convertGuestWithGoogle,
   convertGuestWithPassword,
@@ -249,8 +249,8 @@ export async function signUpWithPassword(
     });
   }
 
-  await grantSignupBonusTokens(row.id);
   await subscriptionRepository.ensureDefaultBasicSubscription(row.id);
+  await dictionaryRepository.ensureDefaultDictionaryForUser(row.id);
 
   return { ok: true as const, ...createAuthResult(row, { isNewUser: true }) };
 }
@@ -387,8 +387,8 @@ export async function logInWithGoogle(
     userName: deriveUserName(payload?.name, email),
   });
   if (isNewUser) {
-    await grantSignupBonusTokens(row.id);
     await subscriptionRepository.ensureDefaultBasicSubscription(row.id);
+    await dictionaryRepository.ensureDefaultDictionaryForUser(row.id);
   }
   return { ok: true as const, ...createAuthResult(row, { isNewUser }) };
 }

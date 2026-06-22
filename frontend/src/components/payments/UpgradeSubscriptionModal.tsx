@@ -50,7 +50,7 @@ export default function UpgradeSubscriptionModal({
     setError(null);
     setIsStartingCheckout(true);
     try {
-      const session = await createCheckoutSession("premium", "subscription", {
+      const session = await createCheckoutSession("premium", {
         billingPeriod: premiumBillingPeriod,
       });
       trackAnalyticsEvent("checkout_redirected", {
@@ -81,11 +81,9 @@ export default function UpgradeSubscriptionModal({
   }
 
   const premiumBenefits = [
-    "mySubscription.plans.premium.benefits.saveDocumentOnly",
-    "mySubscription.plans.premium.benefits.priorityGeneration",
-    "mySubscription.plans.premium.benefits.monthlyTokens",
-    "mySubscription.plans.premium.benefits.fileUploadLimit",
-    "mySubscription.plans.premium.benefits.advancedCustomization",
+    "mySubscription.plans.premium.benefits.prioritySupport",
+    "mySubscription.plans.premium.benefits.telegramPremium",
+    "mySubscription.plans.premium.benefits.earlyAccess",
   ] as const;
 
   return (

@@ -4,6 +4,7 @@ import * as authRepository from "../db/authRepository.js";
 import * as subscriptionRepository from "../db/subscriptionRepository.js";
 import * as userRepository from "../db/userRepository.js";
 import { getPrisma } from "../db/prisma.js";
+import * as dictionaryRepository from "../db/dictionaryRepository.js";
 
 const GUEST_EMAIL_DOMAIN = "guest.vocabbot.local";
 
@@ -16,6 +17,7 @@ export async function createGuestUser() {
       isGuest: true,
     },
   });
+  await dictionaryRepository.ensureDefaultDictionaryForUser(user.id);
   await subscriptionRepository.ensureDefaultBasicSubscription(user.id);
   const authRow = await authRepository.selectAuthByUserId(user.id);
   if (!authRow) {
