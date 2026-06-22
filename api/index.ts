@@ -1,5 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
+import { getServerlessApp } from "../backend/src/serverless.js";
+
 /** Let Express read the raw request body (required for Paddle webhook HMAC). */
 export const config = {
   api: {
@@ -64,14 +66,8 @@ async function getApp(): Promise<HttpApp> {
   if (!bootstrapPromise) {
     bootstrapPromise = (async () => {
       applyHostedEnv();
-      const { initPrisma } = await import("../backend/dist/db/prisma.js");
-      const { createApp } = await import("../backend/dist/app.js");
-      const { bootstrapAdminRoles } = await import(
-        "../backend/dist/services/adminBootstrap.service.js"
-      );
-      initPrisma(resolveDatabaseUrl());
-      await bootstrapAdminRoles();
-      app = createApp();
+      const expressApp = await getServerlessApp(resolveDatabaseUrl());
+      app = expressApp as HttpApp;
       return app;
     })();
   }
