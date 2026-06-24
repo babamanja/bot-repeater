@@ -17,6 +17,22 @@ export function isP3005Error(output) {
   return text.includes("P3005") || text.includes("database schema is not empty");
 }
 
+export function isP3018Error(output) {
+  const text = output ?? "";
+  return text.includes("P3018") || text.includes("migration failed to apply");
+}
+
+export function extractFailedMigrationName(output) {
+  const text = output ?? "";
+  const match = text.match(/Migration name: ([^\s]+)/);
+  return match?.[1] ?? null;
+}
+
+/** Idempotent repairs skipped when init migration is baselined without running SQL. */
+export const BASELINE_DRIFT_REPAIR_SQL = [
+  `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP`,
+];
+
 /**
  * @param {string[]} args Prisma CLI args after `prisma`
  * @param {{ capture?: boolean }} [options]

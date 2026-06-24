@@ -9,7 +9,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { loadEnv } from "./loadEnv.mjs";
-import { BASELINE_MIGRATION, isP3005Error, runPrisma } from "./prismaMigrate.mjs";
+import { BASELINE_MIGRATION, BASELINE_DRIFT_REPAIR_SQL, isP3005Error, runPrisma } from "./prismaMigrate.mjs";
 
 const backendDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const backendEnvPath = resolve(backendDir, ".env");
@@ -38,6 +38,19 @@ if (!process.env.DATABASE_URL?.trim()) {
 function migrateDeploy(capture) {
   console.log("[ensure-local-schema] Running prisma migrate deploy…");
   return runPrisma(["migrate", "deploy"], { capture });
+}
+
+async function repairBaselineDrift() {
+  const { PrismaClient } = await import("@prisma/client");
+  const prisma = new PrismaClient();
+  try {
+    for (const sql of BASELINE_DRIFT_REPAIR_SQL) {
+      await prisma.$executeRawUnsafe(sql);
+    }
+    console.log("[ensure-local-schema] Repaired baseline schema drift.");
+  } finally {
+    await prisma.$disconnect();
+  }
 }
 
 function baselineExistingDatabase() {
@@ -85,6 +98,7 @@ if (result.status === 0) {
 
 if (isP3005Error(result.output)) {
   baselineExistingDatabase();
+  await repairBaselineDrift();
   result = migrateDeploy(false);
   if (result.status !== 0) {
     process.exit(result.status);

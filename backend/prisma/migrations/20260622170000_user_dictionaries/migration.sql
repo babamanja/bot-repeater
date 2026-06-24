@@ -1,3 +1,6 @@
+-- Legacy DBs baselined without running init ALTERs may lack users.created_at.
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
 -- Create dictionaries
 CREATE TABLE "dictionaries" (
     "id" SERIAL NOT NULL,

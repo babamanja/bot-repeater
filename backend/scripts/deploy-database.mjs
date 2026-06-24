@@ -7,7 +7,14 @@
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { BASELINE_MIGRATION, isP3005Error, runPrisma } from "./prismaMigrate.mjs";
+import {
+  BASELINE_DRIFT_REPAIR_SQL,
+  BASELINE_MIGRATION,
+  extractFailedMigrationName,
+  isP3005Error,
+  isP3018Error,
+  runPrisma,
+} from "./prismaMigrate.mjs";
 
 const backendDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const isVercel = process.env.VERCEL === "1";
@@ -114,6 +121,34 @@ function baselineExistingDatabase() {
   return runPrisma(["migrate", "resolve", "--applied", BASELINE_MIGRATION]);
 }
 
+async function repairBaselineDrift() {
+  const { PrismaClient } = await import("@prisma/client");
+  const prisma = new PrismaClient();
+  try {
+    for (const sql of BASELINE_DRIFT_REPAIR_SQL) {
+      await prisma.$executeRawUnsafe(sql);
+    }
+    console.log("[db:deploy] Repaired baseline schema drift.");
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+function resolveFailedMigration(migrationName) {
+  console.warn(
+    `[db:deploy] Migration ${migrationName} failed previously (P3018). ` +
+      "Marking as rolled back and retrying…",
+  );
+  return runPrisma(["migrate", "resolve", "--rolled-back", migrationName]);
+}
+
+function exitMigrateFailure(result) {
+  if (result.output.trim()) {
+    process.stderr.write(result.output);
+  }
+  process.exit(result.status);
+}
+
 async function verifyCoreTables() {
   const { PrismaClient } = await import("@prisma/client");
   const prisma = new PrismaClient();
@@ -174,19 +209,29 @@ async function main() {
 
   console.log("[db:deploy] Running prisma migrate deploy…");
   let result = runMigrateDeploy(true);
-  if (result.status !== 0) {
-    if (isP3005Error(result.output)) {
-      const baselineResult = baselineExistingDatabase();
-      if (baselineResult.status !== 0) {
-        process.exit(baselineResult.status);
+
+  if (result.status !== 0 && isP3005Error(result.output)) {
+    const baselineResult = baselineExistingDatabase();
+    if (baselineResult.status !== 0) {
+      process.exit(baselineResult.status);
+    }
+    await repairBaselineDrift();
+    result = runMigrateDeploy(true);
+  }
+
+  if (result.status !== 0 && isP3018Error(result.output)) {
+    const migrationName = extractFailedMigrationName(result.output);
+    if (migrationName) {
+      const resolveResult = resolveFailedMigration(migrationName);
+      if (resolveResult.status !== 0) {
+        process.exit(resolveResult.status);
       }
-      result = runMigrateDeploy(false);
-    } else if (result.output.trim()) {
-      process.stderr.write(result.output);
+      result = runMigrateDeploy(true);
     }
-    if (result.status !== 0) {
-      process.exit(result.status);
-    }
+  }
+
+  if (result.status !== 0) {
+    exitMigrateFailure(result);
   }
 
   await verifyCoreTables();

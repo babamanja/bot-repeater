@@ -197,6 +197,7 @@ ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "previous_email_for_recovery" TEXT;
 ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "is_guest" BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "primary_language_id" INTEGER;
 ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "learning_language_id" INTEGER;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
 CREATE UNIQUE INDEX IF NOT EXISTS "users_email_key" ON "users"("email");
 CREATE UNIQUE INDEX IF NOT EXISTS "users_telegram_id_key" ON "users"("telegram_id");

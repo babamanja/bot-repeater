@@ -6,7 +6,10 @@ import test from "node:test";
 
 import {
   BASELINE_MIGRATION,
+  BASELINE_DRIFT_REPAIR_SQL,
+  extractFailedMigrationName,
   isP3005Error,
+  isP3018Error,
 } from "../scripts/prismaMigrate.mjs";
 
 const backendRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -30,6 +33,24 @@ test("BASELINE_MIGRATION matches checked-in migration folder", () => {
   assert.ok(existsSync(migrationSql), `expected ${migrationSql}`);
 });
 
+test("isP3018Error detects failed migration recovery error", () => {
+  assert.equal(
+    isP3018Error("Error: P3018\n\nA migration failed to apply."),
+    true,
+  );
+  assert.equal(isP3018Error("migration failed to apply"), true);
+  assert.equal(isP3018Error("migration applied successfully"), false);
+});
+
+test("extractFailedMigrationName parses Prisma migrate output", () => {
+  const output = "Migration name: 20260622170000_user_dictionaries\nDatabase error code: 42703";
+  assert.equal(extractFailedMigrationName(output), "20260622170000_user_dictionaries");
+});
+
+test("BASELINE_DRIFT_REPAIR_SQL adds users.created_at for legacy DBs", () => {
+  assert.match(BASELINE_DRIFT_REPAIR_SQL.join("\n"), /users.*created_at/);
+});
+
 test("deploy-database.mjs baselines P3005 with migrate resolve --applied", () => {
   const source = readFileSync(
     resolve(backendRoot, "scripts/deploy-database.mjs"),
@@ -37,7 +58,9 @@ test("deploy-database.mjs baselines P3005 with migrate resolve --applied", () =>
   );
   assert.match(source, /isP3005Error/);
   assert.match(source, /migrate", "resolve", "--applied", BASELINE_MIGRATION/);
-  assert.doesNotMatch(source, /--rolled-back/);
+  assert.match(source, /isP3018Error/);
+  assert.match(source, /repairBaselineDrift/);
+  assert.doesNotMatch(source, /--rolled-back.*BASELINE_MIGRATION/);
 });
 
 test("dev script uses ensure-local-schema instead of raw migrate deploy", () => {
