@@ -4,13 +4,10 @@
  * - Vercel Preview / Development: skipped.
  * - Local: runs when DATABASE_URL (or DB_* parts) is set; otherwise skipped.
  */
-import { spawnSync } from "node:child_process";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const NPX_BIN = process.platform === "win32" ? "npx.cmd" : "npx";
-const USE_SHELL = process.platform === "win32";
-const BASELINE_MIGRATION = "20260621120000_init_vocab_bot";
+import { BASELINE_MIGRATION, isP3005Error, runPrisma } from "./prismaMigrate.mjs";
 
 const backendDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const isVercel = process.env.VERCEL === "1";
@@ -105,26 +102,16 @@ function logDatabaseTarget(databaseUrl) {
   }
 }
 
-function runPrismaMigrate(args) {
-  const result = spawnSync(NPX_BIN, ["prisma", "migrate", ...args], {
-    stdio: "inherit",
-    shell: USE_SHELL,
-    env: process.env,
-    cwd: backendDir,
-  });
-  if (result.error) {
-    console.error(`[db:deploy] Failed to run ${NPX_BIN}: ${result.error.message}`);
-    return 1;
-  }
-  return result.status ?? 1;
+function runMigrateDeploy(capture = false) {
+  return runPrisma(["migrate", "deploy"], { capture });
 }
 
-function runMigrateDeploy() {
-  return runPrismaMigrate(["deploy"]);
-}
-
-function runMigrateResolveRolledBack(migrationName) {
-  return runPrismaMigrate(["resolve", "--rolled-back", migrationName]);
+function baselineExistingDatabase() {
+  console.warn(
+    `[db:deploy] Database has tables but no Prisma migration history (P3005). ` +
+      `Marking ${BASELINE_MIGRATION} as applied…`,
+  );
+  return runPrisma(["migrate", "resolve", "--applied", BASELINE_MIGRATION]);
 }
 
 async function verifyCoreTables() {
@@ -186,15 +173,19 @@ async function main() {
   logDatabaseTarget(databaseUrl);
 
   console.log("[db:deploy] Running prisma migrate deploy…");
-  let exitCode = runMigrateDeploy();
-  if (exitCode !== 0) {
-    console.warn(
-      `[db:deploy] migrate deploy failed; resolving ${BASELINE_MIGRATION} as rolled back and retrying once…`,
-    );
-    runMigrateResolveRolledBack(BASELINE_MIGRATION);
-    exitCode = runMigrateDeploy();
-    if (exitCode !== 0) {
-      process.exit(exitCode);
+  let result = runMigrateDeploy(true);
+  if (result.status !== 0) {
+    if (isP3005Error(result.output)) {
+      const baselineResult = baselineExistingDatabase();
+      if (baselineResult.status !== 0) {
+        process.exit(baselineResult.status);
+      }
+      result = runMigrateDeploy(false);
+    } else if (result.output.trim()) {
+      process.stderr.write(result.output);
+    }
+    if (result.status !== 0) {
+      process.exit(result.status);
     }
   }
 

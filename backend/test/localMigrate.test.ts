@@ -30,6 +30,16 @@ test("BASELINE_MIGRATION matches checked-in migration folder", () => {
   assert.ok(existsSync(migrationSql), `expected ${migrationSql}`);
 });
 
+test("deploy-database.mjs baselines P3005 with migrate resolve --applied", () => {
+  const source = readFileSync(
+    resolve(backendRoot, "scripts/deploy-database.mjs"),
+    "utf8",
+  );
+  assert.match(source, /isP3005Error/);
+  assert.match(source, /migrate", "resolve", "--applied", BASELINE_MIGRATION/);
+  assert.doesNotMatch(source, /--rolled-back/);
+});
+
 test("dev script uses ensure-local-schema instead of raw migrate deploy", () => {
   const pkg = JSON.parse(readFileSync(resolve(backendRoot, "package.json"), "utf8"));
   assert.match(pkg.scripts.dev, /ensure-local-schema\.mjs/);
