@@ -1,5 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
+import { loadServerlessApp } from "./serverlessLoader.cjs";
+
 /** Let Express read the raw request body (required for Paddle webhook HMAC). */
 export const config = {
   api: {
@@ -64,8 +66,7 @@ async function getApp(): Promise<HttpApp> {
   if (!bootstrapPromise) {
     bootstrapPromise = (async () => {
       applyHostedEnv();
-      const { getServerlessApp } = await import("../backend/src/serverless.js");
-      const expressApp = await getServerlessApp(resolveDatabaseUrl());
+      const expressApp = await loadServerlessApp(resolveDatabaseUrl());
       app = expressApp as HttpApp;
       return app;
     })();

@@ -9,6 +9,7 @@ const backendDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const distLoadEnv = resolve(backendDir, "dist/config/loadEnv.js");
 const authController = resolve(backendDir, "dist/controllers/auth.controller.js");
 const serverlessEntry = resolve(backendDir, "src/serverless.ts");
+const serverlessLoader = resolve(backendDir, "../api/serverlessLoader.cjs");
 
 const forbiddenInLoadEnvJs = ["loadEnv.mjs", "createRequire("];
 
@@ -35,6 +36,21 @@ if (!existsSync(authController)) {
 const authText = readFileSync(authController, "utf8");
 if (authText.includes("../config/loadEnv.js")) {
   console.error("[verify-serverless] auth.controller.js must import appEnv.js, not loadEnv.js");
+  process.exit(1);
+}
+
+if (!existsSync(serverlessLoader)) {
+  console.error("[verify-serverless] Missing api/serverlessLoader.cjs");
+  process.exit(1);
+}
+
+const loaderText = readFileSync(serverlessLoader, "utf8");
+if (!loaderText.includes('await import(serverlessModule)')) {
+  console.error("[verify-serverless] serverlessLoader.cjs must use dynamic import()");
+  process.exit(1);
+}
+if (/require\([^)]*serverless/.test(loaderText)) {
+  console.error("[verify-serverless] serverlessLoader.cjs must not require() backend serverless");
   process.exit(1);
 }
 

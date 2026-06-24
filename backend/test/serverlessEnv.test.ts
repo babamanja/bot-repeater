@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import test from "node:test";
 
 const backendRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const repoRoot = resolve(backendRoot, "..");
 
 const FORBIDDEN_IN_LOAD_ENV_JS = ["loadEnv.mjs", "createRequire("];
 
@@ -46,15 +48,60 @@ test("createApp boots without loading loadEnv module", async () => {
   assert.equal(typeof app, "function");
 });
 
-test("api handler dynamically imports serverless entry from backend/src", () => {
-  const apiIndexPath = resolve(backendRoot, "../api/index.ts");
+test("api handler loads backend through CJS serverlessLoader shim", () => {
+  const apiIndexPath = resolve(repoRoot, "api/index.ts");
   const source = readUtf8(apiIndexPath);
-  assert.match(source, /import\(["']\.\.\/backend\/src\/serverless\.js["']\)/);
-  assert.doesNotMatch(
-    source,
-    /^\s*import\s+\{[^}]+\}\s+from\s+["']\.\.\/backend\/src\/serverless\.js["']/m,
+  assert.match(source, /from ["']\.\/serverlessLoader\.cjs["']/);
+  assert.doesNotMatch(source, /backend\/src\/serverless/);
+  assert.doesNotMatch(source, /backend\/dist\/serverless/);
+});
+
+test("serverlessLoader.cjs uses runtime import() instead of require()", () => {
+  const loaderPath = resolve(repoRoot, "api/serverlessLoader.cjs");
+  const source = readUtf8(loaderPath);
+  assert.match(source, /await import\(serverlessModule\)/);
+  assert.match(source, /\.join\("/);
+  assert.doesNotMatch(source, /require\([^)]*serverless/);
+});
+
+test("CJS require() of ESM module throws ERR_REQUIRE_ESM on strict Node runtimes", (t) => {
+  const requireFromEsmPackage = createRequire(
+    resolve(backendRoot, "test/fixtures/esm-package/package.json"),
   );
-  assert.doesNotMatch(source, /backend\/dist\//);
+
+  try {
+    requireFromEsmPackage("./entry.js");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    assert.match(message, /ERR_REQUIRE_ESM|require\(\) of ES Module/);
+    return;
+  }
+
+  t.skip("This Node build allows require() of ESM; Vercel guard is import() in serverlessLoader.cjs");
+});
+
+test("Vercel CJS handler can require api/serverlessLoader.cjs", () => {
+  const requireFromApi = createRequire(resolve(repoRoot, "api/serverlessLoader.cjs"));
+  const { loadServerlessApp } = requireFromApi("./serverlessLoader.cjs");
+  assert.equal(typeof loadServerlessApp, "function");
+});
+
+test("serverlessLoader.cjs can import compiled ESM backend exports", async (t) => {
+  const distServerless = resolve(backendRoot, "dist/serverless.js");
+  if (!existsSync(distServerless)) {
+    t.skip("backend/dist not built yet");
+    return;
+  }
+
+  const serverlessModule = ["..", "backend", "dist", "serverless.js"].join("/");
+  const resolvedFromApi = resolve(repoRoot, "api", serverlessModule);
+  const mod = await import(pathToFileURL(resolvedFromApi).href);
+  assert.equal(typeof mod.getServerlessApp, "function");
+});
+
+test("vercel.json bundles compiled backend dist into api function", () => {
+  const vercelConfig = JSON.parse(readUtf8(resolve(repoRoot, "vercel.json")));
+  assert.equal(vercelConfig.functions?.["api/index.ts"]?.includeFiles, "backend/dist/**");
 });
 
 test("deploy-database.mjs does not statically import loadEnv.mjs", () => {
