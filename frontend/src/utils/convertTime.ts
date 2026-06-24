@@ -43,6 +43,40 @@ export function formatRelativeTime(value: DateInput, locale?: string): string {
   return formatter.format(0, "second");
 }
 
+export function isReviewOverdue(nextReviewMs: number, nowMs: number = Date.now()): boolean {
+  if (!Number.isFinite(nextReviewMs) || nextReviewMs <= 0) {
+    return false;
+  }
+  return nextReviewMs <= nowMs;
+}
+
+const SHORT_DURATION_UNITS: ReadonlyArray<{ limitMs: number; divisorMs: number; suffix: string }> = [
+  { limitMs: 60_000, divisorMs: 1_000, suffix: "s" },
+  { limitMs: 3_600_000, divisorMs: 60_000, suffix: "m" },
+  { limitMs: 86_400_000, divisorMs: 3_600_000, suffix: "h" },
+  { limitMs: 86_400_000 * 45, divisorMs: 86_400_000, suffix: "d" },
+  { limitMs: 86_400_000 * 365, divisorMs: 86_400_000 * 30.4375, suffix: "mo" },
+];
+
+export function formatShortDurationMs(ms: number): string {
+  if (!Number.isFinite(ms) || ms <= 0) {
+    return "0s";
+  }
+
+  for (const unit of SHORT_DURATION_UNITS) {
+    if (ms < unit.limitMs) {
+      return `${Math.round(ms / unit.divisorMs)}${unit.suffix}`;
+    }
+  }
+
+  const years = ms / (86_400_000 * 365.25);
+  if (years >= 10) {
+    return `${Math.round(years)}y`;
+  }
+  const roundedYears = Math.round(years * 10) / 10;
+  return `${roundedYears}y`;
+}
+
 export function formatAbsoluteTime(value: DateInput): string {
   const date = parseDate(value);
   if (!date) {

@@ -1,6 +1,6 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import {
   type AdminLanguage,
@@ -10,9 +10,9 @@ import {
   getAdminLanguages,
   getAdminVocabWords,
   type PaginationMeta,
-  updateAdminVocabWord,
 } from "../../api/admin";
 import Button from "../../components/UI/Button/Button";
+import ButtonLink from "../../components/UI/Button/ButtonLink";
 import Modal from "../../components/UI/Modal";
 import Page from "../../components/UI/Page";
 import PageHeader from "../../components/UI/PageHeader";
@@ -20,6 +20,7 @@ import ResponsiveDataList from "../../components/UI/ResponsiveDataList";
 import type { DataListColumn } from "../../components/UI/dataListTypes";
 import TextInput from "../../components/UI/TextInput";
 import { useAdminPage } from "../../hooks/useAdminPage";
+import { adminWordDetailPath } from "../../paths";
 import "../style.scss";
 
 const DEFAULT_PAGINATION: PaginationMeta = {
@@ -29,7 +30,6 @@ const DEFAULT_PAGINATION: PaginationMeta = {
   totalPages: 1,
 };
 
-type WordFormMode = "create" | "edit";
 type WordsSortBy = "id" | "text" | "language";
 
 type AdminWordsQuery = {
@@ -104,12 +104,11 @@ function mapWordError(code: string, t: (key: string) => string): string {
 
 export default function AdminWordsPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const query = useMemo(() => parseAdminWordsQuery(searchParams), [searchParams]);
   const [languages, setLanguages] = useState<AdminLanguage[]>([]);
   const [formOpen, setFormOpen] = useState(false);
-  const [formMode, setFormMode] = useState<WordFormMode>("create");
-  const [editingWord, setEditingWord] = useState<AdminVocabWord | null>(null);
   const [text, setText] = useState("");
   const [formLanguageId, setFormLanguageId] = useState<number | "">("");
   const [formError, setFormError] = useState<string | null>(null);
@@ -162,14 +161,7 @@ export default function AdminWordsPage() {
     pageSize: query.pageSize,
   };
 
-  const languageChangeLocked =
-    formMode === "edit" &&
-    editingWord != null &&
-    editingWord.primaryPairCount + editingWord.learningPairCount > 0;
-
   function openCreateForm() {
-    setFormMode("create");
-    setEditingWord(null);
     setText("");
     const filteredLanguageId =
       query.languageId !== "" &&
@@ -181,18 +173,8 @@ export default function AdminWordsPage() {
     setFormOpen(true);
   }
 
-  function openEditForm(word: AdminVocabWord) {
-    setFormMode("edit");
-    setEditingWord(word);
-    setText(word.text);
-    setFormLanguageId(word.languageId);
-    setFormError(null);
-    setFormOpen(true);
-  }
-
   function closeForm() {
     setFormOpen(false);
-    setEditingWord(null);
     setFormError(null);
   }
 
@@ -211,16 +193,9 @@ export default function AdminWordsPage() {
     setIsSubmitting(true);
     setFormError(null);
     try {
-      if (formMode === "create") {
-        await createAdminVocabWord({ text: trimmedText, languageId: formLanguageId });
-      } else if (editingWord) {
-        await updateAdminVocabWord(editingWord.id, {
-          text: trimmedText,
-          languageId: formLanguageId,
-        });
-      }
+      const created = await createAdminVocabWord({ text: trimmedText, languageId: formLanguageId });
       closeForm();
-      await reload();
+      navigate(adminWordDetailPath(created.id));
     } catch (submitError) {
       const message =
         submitError instanceof Error ? submitError.message : t("admin.wordsSaveFailed");
@@ -290,9 +265,9 @@ export default function AdminWordsPage() {
         mobileRole: "detail",
         render: (row) => (
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            <Button type="button" style="secondary" onClick={() => openEditForm(row)}>
+            <ButtonLink to={adminWordDetailPath(row.id)} style="secondary">
               {t("admin.wordsEdit")}
-            </Button>
+            </ButtonLink>
             <Button
               type="button"
               style="secondary"
@@ -433,19 +408,13 @@ export default function AdminWordsPage() {
               {t("admin.wordsCancel")}
             </Button>
             <Button type="submit" form="admin-word-form" disabled={isSubmitting}>
-              {isSubmitting
-                ? t("admin.wordsSaving")
-                : formMode === "create"
-                  ? t("admin.wordsCreate")
-                  : t("admin.wordsSave")}
+              {isSubmitting ? t("admin.wordsSaving") : t("admin.wordsCreate")}
             </Button>
           </>
         }
       >
         <form id="admin-word-form" className="add-word-modal" onSubmit={handleSubmit}>
-          <h2 className="add-word-modal__title">
-            {formMode === "create" ? t("admin.wordsAddTitle") : t("admin.wordsEditTitle")}
-          </h2>
+          <h2 className="add-word-modal__title">{t("admin.wordsAddTitle")}</h2>
           {formError ? <p className="upload-file__error">{formError}</p> : null}
           <label className="add-word-modal__hint" htmlFor="admin-word-text">
             {t("table.adminWords.text")}
@@ -465,7 +434,7 @@ export default function AdminWordsPage() {
             className="text-input"
             style={{ marginBottom: 0 }}
             value={formLanguageId}
-            disabled={isSubmitting || languageChangeLocked}
+            disabled={isSubmitting}
             onChange={(event) => {
               const value = event.target.value;
               setFormLanguageId(value ? Number(value) : "");
@@ -477,9 +446,6 @@ export default function AdminWordsPage() {
               </option>
             ))}
           </select>
-          {languageChangeLocked ? (
-            <p className="add-word-modal__hint">{t("admin.wordsLanguageLockedHint")}</p>
-          ) : null}
         </form>
       </Modal>
     </Page>

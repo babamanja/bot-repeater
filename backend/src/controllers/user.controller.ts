@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import * as dictionaryService from "../services/dictionary.service.js";
 import * as userService from "../services/user.service.js";
 import * as vocabService from "../services/vocab.service.js";
+import { isValidReviewCardDirection } from "@vocab-bot/shared/vocabReviewCard";
 import {
   getRequiredUserId,
   sendServiceFailure,
@@ -92,6 +93,69 @@ export async function listMyWords(req: Request, res: Response) {
   return res.status(200).json({ items: result.items, pagination: result.pagination });
 }
 
+export async function getMyWord(req: Request, res: Response) {
+  const userId = getRequiredUserId(req);
+  if (userId === null) {
+    return sendUnauthorized(res);
+  }
+  const vocabPairId = Number(req.params?.vocabPairId);
+  const result = await vocabService.getMyWordDetail(userId, vocabPairId);
+  if (result.ok === false) {
+    return sendServiceFailure(res, result);
+  }
+  return res.status(200).json(result.word);
+}
+
+export async function updateMyWord(req: Request, res: Response) {
+  const userId = getRequiredUserId(req);
+  if (userId === null) {
+    return sendUnauthorized(res);
+  }
+  const vocabPairId = Number(req.params?.vocabPairId);
+  const body = req.body ?? {};
+  const result = await vocabService.updateMyWord(userId, vocabPairId, {
+    partOfSpeech: body.partOfSpeech,
+    example: body.example,
+  });
+  if (result.ok === false) {
+    return sendServiceFailure(res, result);
+  }
+  return res.status(200).json(result.word);
+}
+
+export async function addMyWordNestMember(req: Request, res: Response) {
+  const userId = getRequiredUserId(req);
+  if (userId === null) {
+    return sendUnauthorized(res);
+  }
+  const vocabPairId = Number(req.params?.vocabPairId);
+  const body = req.body ?? {};
+  const side = body.side === "primary" || body.side === "learning" ? body.side : null;
+  const form = typeof body.form === "string" ? body.form : "";
+  if (!side) {
+    return res.status(400).json({ error: "invalid_nest_side" });
+  }
+  const result = await vocabService.addNestMemberToMyWord(userId, vocabPairId, { side, form });
+  if (result.ok === false) {
+    return sendServiceFailure(res, result);
+  }
+  return res.status(200).json(result.word);
+}
+
+export async function removeMyWordNestMember(req: Request, res: Response) {
+  const userId = getRequiredUserId(req);
+  if (userId === null) {
+    return sendUnauthorized(res);
+  }
+  const vocabPairId = Number(req.params?.vocabPairId);
+  const memberWordId = Number(req.params?.memberWordId);
+  const result = await vocabService.removeNestMemberFromMyWord(userId, vocabPairId, memberWordId);
+  if (result.ok === false) {
+    return sendServiceFailure(res, result);
+  }
+  return res.status(200).json(result.word);
+}
+
 export async function getVocabLanguages(req: Request, res: Response) {
   const userId = getRequiredUserId(req);
   if (userId === null) {
@@ -138,6 +202,85 @@ export async function addMyWord(req: Request, res: Response) {
     return sendServiceFailure(res, result);
   }
   return res.status(201).json(result.word);
+}
+
+export async function getDueReviewWords(req: Request, res: Response) {
+  const userId = getRequiredUserId(req);
+  if (userId === null) {
+    return sendUnauthorized(res);
+  }
+  const result = await vocabService.getDueWordsForReview(userId);
+  if (result.ok === false) {
+    return sendServiceFailure(res, result);
+  }
+  return res.status(200).json({ words: result.words });
+}
+
+export async function submitReviewResult(req: Request, res: Response) {
+  const userId = getRequiredUserId(req);
+  if (userId === null) {
+    return sendUnauthorized(res);
+  }
+  const vocabPairId = Number(req.params?.vocabPairId);
+  const answerRaw = typeof req.body?.answer === "string" ? req.body.answer.trim() : "";
+  const resultRaw = typeof req.body?.result === "string" ? req.body.result : "";
+  const directionRaw = req.body?.direction;
+  const direction = isValidReviewCardDirection(directionRaw) ? directionRaw : undefined;
+
+  if (answerRaw) {
+    const checkResult = await vocabService.checkReviewAnswer(
+      userId,
+      vocabPairId,
+      answerRaw,
+      direction,
+    );
+    if (checkResult.ok === false) {
+      return sendServiceFailure(res, checkResult);
+    }
+    return res.status(200).json({
+      direction: checkResult.direction,
+      promptWord: checkResult.promptWord,
+      expectedWord: checkResult.expectedWord,
+      primaryWord: checkResult.primaryWord,
+      learningWord: checkResult.learningWord,
+      correct: checkResult.correct,
+      match: checkResult.match,
+      userAnswer: checkResult.userAnswer,
+      pimsleurLevel: checkResult.pimsleurLevel,
+      nextReviewMs: checkResult.nextReviewMs,
+    });
+  }
+
+  if (resultRaw !== "know" && resultRaw !== "dont") {
+    return res.status(400).json({ error: "invalid_review_result" });
+  }
+
+  const reviewResult = await vocabService.applyReviewResult(
+    userId,
+    vocabPairId,
+    resultRaw,
+    direction,
+  );
+  if (reviewResult.ok === false) {
+    return sendServiceFailure(res, reviewResult);
+  }
+  return res.status(200).json({
+    direction: reviewResult.direction,
+    promptWord:
+      reviewResult.direction === "learning_to_primary"
+        ? reviewResult.learningWord
+        : reviewResult.primaryWord,
+    expectedWord:
+      reviewResult.direction === "learning_to_primary"
+        ? reviewResult.primaryWord
+        : reviewResult.learningWord,
+    primaryWord: reviewResult.primaryWord,
+    learningWord: reviewResult.learningWord,
+    correct: resultRaw === "know",
+    match: resultRaw === "know" ? "exact" : "wrong",
+    pimsleurLevel: reviewResult.pimsleurLevel,
+    nextReviewMs: reviewResult.nextReviewMs,
+  });
 }
 
 export async function listMyDictionaries(req: Request, res: Response) {

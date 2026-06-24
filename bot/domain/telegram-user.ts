@@ -76,6 +76,27 @@ export async function getUserIdByTelegram(
   return row?.id ?? null;
 }
 
+export async function isTelegramOnlyAccount(
+  prisma: PrismaClient,
+  userId: number,
+): Promise<boolean> {
+  const user = await prisma.user.findFirst({
+    where: { id: userId, deletedAt: null },
+    select: {
+      email: true,
+      auth: { select: { passwordHash: true, googleSub: true } },
+    },
+  });
+  if (!user) {
+    return false;
+  }
+  return (
+    !user.email?.trim() &&
+    !user.auth?.passwordHash &&
+    !user.auth?.googleSub
+  );
+}
+
 export async function getUserLanguages(
   prisma: PrismaClient,
   telegramUserId: number,

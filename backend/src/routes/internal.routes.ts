@@ -12,5 +12,13 @@ router.post(
   "/telegram/stars-payment",
   asyncHandler(internalController.recordTelegramStarsPayment),
 );
+router.post(
+  "/telegram/link-code",
+  asyncHandler(internalController.createTelegramLinkCode),
+);
+router.post(
+  "/telegram/complete-link",
+  asyncHandler(internalController.completeTelegramLink),
+);
 
 export default router;

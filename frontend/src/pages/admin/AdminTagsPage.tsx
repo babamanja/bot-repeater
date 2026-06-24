@@ -12,10 +12,10 @@ import Button from "../../components/UI/Button/Button";
 import Modal from "../../components/UI/Modal";
 import Page from "../../components/UI/Page";
 import PageHeader from "../../components/UI/PageHeader";
-import ResponsiveDataList from "../../components/UI/ResponsiveDataList";
-import type { DataListColumn } from "../../components/UI/dataListTypes";
 import TextInput from "../../components/UI/TextInput";
 import { useAdminPage } from "../../hooks/useAdminPage";
+import TagHierarchyList from "./TagHierarchyList";
+import { buildTagTree } from "./tagTree";
 
 import "../style.scss";
 
@@ -65,6 +65,7 @@ export default function AdminTagsPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingTagId, setDeletingTagId] = useState<number | null>(null);
+  const [createUnderParent, setCreateUnderParent] = useState<AdminTag | null>(null);
 
   const loadTags = useCallback(() => getAdminTags().then((items) => ({ items })), []);
 
@@ -79,6 +80,7 @@ export default function AdminTagsPage() {
   });
 
   const tags = data?.items ?? [];
+  const tagTree = useMemo(() => buildTagTree(tags), [tags]);
 
   const parentOptions = useMemo(() => {
     if (formMode === "edit" && editingTag) {
@@ -92,8 +94,19 @@ export default function AdminTagsPage() {
   function openCreateForm() {
     setFormMode("create");
     setEditingTag(null);
+    setCreateUnderParent(null);
     setName("");
     setParentId(null);
+    setFormError(null);
+    setFormOpen(true);
+  }
+
+  function openCreateChildForm(parentTag: AdminTag) {
+    setFormMode("create");
+    setEditingTag(null);
+    setCreateUnderParent(parentTag);
+    setName("");
+    setParentId(parentTag.id);
     setFormError(null);
     setFormOpen(true);
   }
@@ -110,6 +123,7 @@ export default function AdminTagsPage() {
   function closeForm() {
     setFormOpen(false);
     setEditingTag(null);
+    setCreateUnderParent(null);
     setFormError(null);
   }
 
@@ -161,56 +175,6 @@ export default function AdminTagsPage() {
     }
   }
 
-  const columns = useMemo<DataListColumn<AdminTag>[]>(
-    () => [
-      {
-        id: "name",
-        label: t("admin.tagsName"),
-        mobileRole: "summary-primary",
-        render: (tag) => tag.name,
-      },
-      {
-        id: "parent",
-        label: t("admin.tagsParent"),
-        mobileRole: "summary-secondary",
-        render: (tag) => tag.parentName ?? t("admin.tagsNoParent"),
-      },
-      {
-        id: "childCount",
-        label: t("admin.tagsChildCount"),
-        mobileRole: "detail",
-        render: (tag) => tag.childCount,
-      },
-      {
-        id: "vocabPairCount",
-        label: t("admin.tagsPairCount"),
-        mobileRole: "detail",
-        render: (tag) => tag.vocabPairCount,
-      },
-      {
-        id: "actions",
-        label: t("admin.tagsActions"),
-        mobileRole: "detail",
-        render: (tag) => (
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            <Button type="button" style="secondary" onClick={() => openEditForm(tag)}>
-              {t("admin.tagsEdit")}
-            </Button>
-            <Button
-              type="button"
-              style="secondary"
-              disabled={deletingTagId === tag.id}
-              onClick={() => void handleDelete(tag)}
-            >
-              {deletingTagId === tag.id ? t("admin.tagsDeleting") : t("admin.tagsDelete")}
-            </Button>
-          </div>
-        ),
-      },
-    ],
-    [deletingTagId, t],
-  );
-
   return (
     <Page width="full">
       <PageHeader
@@ -224,14 +188,17 @@ export default function AdminTagsPage() {
       />
       {error ? <p className="upload-file__error">{error}</p> : null}
       {isLoading ? <p>{t("admin.tagsLoading")}</p> : null}
-      {!isLoading ? (
-        <ResponsiveDataList
-          columns={columns}
-          data={tags}
-          getRowKey={(tag) => String(tag.id)}
-          emptyMessage={t("admin.tagsEmpty")}
+      {!isLoading && tagTree.length > 0 ? (
+        <TagHierarchyList
+          nodes={tagTree}
+          deletingTagId={deletingTagId}
+          onAddChild={openCreateChildForm}
+          onEdit={openEditForm}
+          onDelete={handleDelete}
+          t={t}
         />
       ) : null}
+      {!isLoading && tagTree.length === 0 ? <p>{t("admin.tagsEmpty")}</p> : null}
 
       <Modal
         open={formOpen}
@@ -252,7 +219,11 @@ export default function AdminTagsPage() {
       >
         <form id="admin-tag-form" className="add-word-modal" onSubmit={handleSubmit}>
           <h2 className="add-word-modal__title">
-            {formMode === "create" ? t("admin.tagsAddTitle") : t("admin.tagsEditTitle")}
+            {formMode === "create"
+              ? createUnderParent
+                ? t("admin.tagsAddChildTitle", { name: createUnderParent.name })
+                : t("admin.tagsAddTitle")
+              : t("admin.tagsEditTitle")}
           </h2>
           {formError ? <p className="upload-file__error">{formError}</p> : null}
           <label className="add-word-modal__hint" htmlFor="admin-tag-name">
@@ -273,7 +244,7 @@ export default function AdminTagsPage() {
             className="text-input"
             style={{ marginBottom: 0 }}
             value={parentId ?? ""}
-            disabled={isSubmitting}
+            disabled={isSubmitting || createUnderParent != null}
             onChange={(event) => {
               const value = event.target.value;
               setParentId(value ? Number(value) : null);

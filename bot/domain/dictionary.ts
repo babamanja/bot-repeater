@@ -42,7 +42,12 @@ export async function attachPairToUserDefaultDictionary(
   prisma: PrismaClient,
   userId: number,
   vocabPairId: number,
-  schedule: { pimsleurLevel: number; nextReviewMs: bigint },
+  schedule: {
+    pimsleurLevel: number;
+    nextReviewMs: bigint;
+    pimsleurLevelReverse: number;
+    nextReviewMsReverse: bigint;
+  },
 ): Promise<void> {
   const dictionaryId = await ensureDefaultDictionaryForUser(prisma, userId);
   await prisma.dictionaryEntry.createMany({
@@ -52,6 +57,8 @@ export async function attachPairToUserDefaultDictionary(
         vocabPairId,
         pimsleurLevel: schedule.pimsleurLevel,
         nextReviewMs: schedule.nextReviewMs,
+        pimsleurLevelReverse: schedule.pimsleurLevelReverse,
+        nextReviewMsReverse: schedule.nextReviewMsReverse,
       },
     ],
     skipDuplicates: true,
@@ -62,7 +69,12 @@ export async function attachPairsToUserDefaultDictionary(
   prisma: PrismaClient,
   userId: number,
   pairIds: number[],
-  schedule: { pimsleurLevel: number; nextReviewMs: bigint },
+  schedule: {
+    pimsleurLevel: number;
+    nextReviewMs: bigint;
+    pimsleurLevelReverse: number;
+    nextReviewMsReverse: bigint;
+  },
 ): Promise<void> {
   if (pairIds.length === 0) {
     return;
@@ -74,6 +86,8 @@ export async function attachPairsToUserDefaultDictionary(
       vocabPairId,
       pimsleurLevel: schedule.pimsleurLevel,
       nextReviewMs: schedule.nextReviewMs,
+      pimsleurLevelReverse: schedule.pimsleurLevelReverse,
+      nextReviewMsReverse: schedule.nextReviewMsReverse,
     })),
     skipDuplicates: true,
   });

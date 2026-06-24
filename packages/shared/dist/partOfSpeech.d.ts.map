@@ -1,0 +1,1 @@
+{"version":3,"file":"partOfSpeech.d.ts","sourceRoot":"","sources":["../src/partOfSpeech.ts"],"names":[],"mappings":"AAAA,eAAO,MAAM,qBAAqB,8HAWxB,CAAC;AAEX,MAAM,MAAM,YAAY,GAAG,CAAC,OAAO,qBAAqB,CAAC,CAAC,MAAM,CAAC,CAAC;AAElE,wBAAgB,cAAc,CAAC,KAAK,EAAE,OAAO,GAAG,KAAK,IAAI,YAAY,CAKpE;AAED,wBAAgB,0BAA0B,CACxC,KAAK,EAAE,OAAO,GACb,YAAY,GAAG,IAAI,GAAG,SAAS,CAejC"}

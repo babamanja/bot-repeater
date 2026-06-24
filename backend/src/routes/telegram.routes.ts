@@ -11,6 +11,11 @@ router.post(
   requireAuth,
   asyncHandler(telegramController.createMyTelegramLinkCode),
 );
+router.post(
+  "/link-code/claim",
+  requireAuth,
+  asyncHandler(telegramController.claimMyTelegramLinkCode),
+);
 router.delete("/link", requireAuth, asyncHandler(telegramController.unlinkMyTelegram));
 
 export default router;

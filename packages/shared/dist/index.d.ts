@@ -5,4 +5,11 @@ export * from "./pricing.js";
 export * from "./quizLanguages.js";
 export * from "./generationUploadProfile.js";
 export * from "./vocabPair.js";
+export * from "./vocabPairRelation.js";
+export * from "./vocabNest.js";
+export * from "./vocabReviewAnswer.js";
+export * from "./vocabReviewCard.js";
+export * from "./partOfSpeech.js";
+export * from "./pimsleurSchedule.js";
+export * from "./forgettingCurve.js";
 //# sourceMappingURL=index.d.ts.map

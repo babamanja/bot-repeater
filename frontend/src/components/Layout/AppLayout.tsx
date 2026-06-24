@@ -39,6 +39,7 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
   { to: "/admin/translations", labelKey: "nav.adminTranslations" },
   { to: "/admin/user-pairs", labelKey: "nav.adminUserPairs" },
   { to: "/admin/ai-usage", labelKey: "nav.adminAiUsage" },
+  { to: "/admin/test-components", labelKey: "nav.adminTestComponents" },
 ];
 
 export default function AppLayout() {

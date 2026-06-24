@@ -39,7 +39,12 @@ export async function ensureDefaultDictionaryForUser(userId: number): Promise<nu
 export async function attachPairToUserDefaultDictionary(
   userId: number,
   vocabPairId: number,
-  schedule: { pimsleurLevel: number; nextReviewMs: bigint },
+  schedule: {
+    pimsleurLevel: number;
+    nextReviewMs: bigint;
+    pimsleurLevelReverse: number;
+    nextReviewMsReverse: bigint;
+  },
 ): Promise<void> {
   const dictionaryId = await ensureDefaultDictionaryForUser(userId);
   await getPrisma().dictionaryEntry.createMany({
@@ -49,6 +54,8 @@ export async function attachPairToUserDefaultDictionary(
         vocabPairId,
         pimsleurLevel: schedule.pimsleurLevel,
         nextReviewMs: schedule.nextReviewMs,
+        pimsleurLevelReverse: schedule.pimsleurLevelReverse,
+        nextReviewMsReverse: schedule.nextReviewMsReverse,
       },
     ],
     skipDuplicates: true,
@@ -58,7 +65,12 @@ export async function attachPairToUserDefaultDictionary(
 export async function attachPairsToUserDefaultDictionary(
   userId: number,
   pairIds: number[],
-  schedule: { pimsleurLevel: number; nextReviewMs: bigint },
+  schedule: {
+    pimsleurLevel: number;
+    nextReviewMs: bigint;
+    pimsleurLevelReverse: number;
+    nextReviewMsReverse: bigint;
+  },
 ): Promise<void> {
   if (pairIds.length === 0) {
     return;
@@ -70,6 +82,8 @@ export async function attachPairsToUserDefaultDictionary(
       vocabPairId,
       pimsleurLevel: schedule.pimsleurLevel,
       nextReviewMs: schedule.nextReviewMs,
+      pimsleurLevelReverse: schedule.pimsleurLevelReverse,
+      nextReviewMsReverse: schedule.nextReviewMsReverse,
     })),
     skipDuplicates: true,
   });
@@ -79,8 +93,8 @@ export type DictionaryEntryWithPair = Prisma.DictionaryEntryGetPayload<{
   include: {
     vocabPair: {
       include: {
-        wordA: { select: { text: true; languageId: true } };
-        wordB: { select: { text: true; languageId: true } };
+        wordA: { select: { id: true; text: true; languageId: true } };
+        wordB: { select: { id: true; text: true; languageId: true } };
       };
     };
   };
@@ -101,8 +115,8 @@ export async function selectDefaultDictionaryEntry(
     include: {
       vocabPair: {
         include: {
-          wordA: { select: { text: true, languageId: true } },
-          wordB: { select: { text: true, languageId: true } },
+          wordA: { select: { id: true, text: true, languageId: true } },
+          wordB: { select: { id: true, text: true, languageId: true } },
         },
       },
     },

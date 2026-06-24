@@ -1,9 +1,11 @@
+import * as nestRepository from "./nestRepository.js";
 import { getPrisma } from "./prisma.js";
 
 const vocabWordSelect = {
   id: true,
   text: true,
   languageId: true,
+  nestId: true,
   language: { select: { name: true } },
   _count: { select: { pairsAsWordA: true, pairsAsWordB: true } },
 } as const;
@@ -16,13 +18,12 @@ export async function selectVocabWordById(wordId: number) {
 }
 
 export async function insertVocabWord(input: { languageId: number; text: string }) {
-  return getPrisma().vocabWord.create({
-    data: {
-      languageId: input.languageId,
-      text: input.text,
-    },
-    select: vocabWordSelect,
-  });
+  const word = await nestRepository.ensureVocabWordWithNest(input.languageId, input.text);
+  const row = await selectVocabWordById(word.id);
+  if (!row) {
+    throw new Error(`Vocab word not found after insert: ${word.id}`);
+  }
+  return row;
 }
 
 export async function updateVocabWordById(
@@ -59,10 +60,5 @@ export async function isVocabWordTextTaken(
 }
 
 export async function upsertVocabWord(languageId: number, text: string) {
-  return getPrisma().vocabWord.upsert({
-    where: { languageId_text: { languageId, text } },
-    update: {},
-    create: { languageId, text },
-    select: { id: true, text: true, languageId: true },
-  });
+  return nestRepository.ensureVocabWordWithNest(languageId, text);
 }

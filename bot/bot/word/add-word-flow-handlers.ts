@@ -12,6 +12,7 @@ import {
   getAddWordFlowState,
   setAddWordFlowState,
 } from './add-word-flow-state';
+import { clearReviewSession } from './review-session-state';
 import type { ActionContext } from '../telegraf-helpers';
 import { getMessageText } from '../telegraf-helpers';
 import { getUserLanguages } from '../../domain/telegram-user';
@@ -30,6 +31,8 @@ export async function startAddWordDialog(ctx: Context, pool: PrismaClient): Prom
   if (!uid) return;
 
   if (!(await requireUserLanguagesSetOrReply(ctx, pool))) return;
+
+  clearReviewSession(uid);
 
   const names = await getUserLanguageNames(pool, uid);
   if (!names) {

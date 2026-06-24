@@ -28,8 +28,14 @@ router.get("/feedback", asyncHandler(adminController.listFeedback));
 router.get("/user-pairs", asyncHandler(adminController.listUserPairs));
 router.get("/words", asyncHandler(adminController.listVocabWords));
 router.post("/words", asyncHandler(adminController.createVocabWord));
+router.get("/words/:wordId", asyncHandler(adminController.getVocabWord));
 router.patch("/words/:wordId", asyncHandler(adminController.updateVocabWord));
 router.delete("/words/:wordId", asyncHandler(adminController.deleteVocabWord));
+router.post("/words/:wordId/nest-members", asyncHandler(adminController.addVocabWordNestMember));
+router.delete(
+  "/words/:wordId/nest-members/:memberWordId",
+  asyncHandler(adminController.removeVocabWordNestMember),
+);
 router.get("/dictionaries", asyncHandler(adminController.listDictionaries));
 router.get("/translations", asyncHandler(adminController.listTranslations));
 router.get("/translations/:translationId", asyncHandler(adminController.getTranslation));

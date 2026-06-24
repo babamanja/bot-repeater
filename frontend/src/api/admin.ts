@@ -390,6 +390,8 @@ export async function getAdminVocabWords(
 export type AdminVocabWordInput = {
   text: string;
   languageId: number;
+  partOfSpeech?: string | null;
+  tagIds?: number[];
 };
 
 export async function createAdminVocabWord(payload: AdminVocabWordInput): Promise<AdminVocabWord> {
@@ -400,13 +402,58 @@ export async function createAdminVocabWord(payload: AdminVocabWordInput): Promis
 export async function updateAdminVocabWord(
   wordId: number,
   payload: Partial<AdminVocabWordInput>,
-): Promise<AdminVocabWord> {
-  const { data } = await apiClient.patch<AdminVocabWord>(`/admin/words/${wordId}`, payload);
+): Promise<AdminVocabWordDetail> {
+  const { data } = await apiClient.patch<AdminVocabWordDetail>(`/admin/words/${wordId}`, payload);
   return data;
 }
 
 export async function deleteAdminVocabWord(wordId: number): Promise<void> {
   await apiClient.delete(`/admin/words/${wordId}`);
+}
+
+export type AdminVocabWordNestMember = {
+  wordId: number;
+  text: string;
+  isAnchor: boolean;
+};
+
+export type AdminVocabWordDetail = {
+  id: number;
+  text: string;
+  languageId: number;
+  languageName: string;
+  primaryPairCount: number;
+  learningPairCount: number;
+  learningRolePairCount: number;
+  partOfSpeech: string | null;
+  tagIds: number[];
+  tagNames: string[];
+  nestMembers: AdminVocabWordNestMember[];
+};
+
+export async function getAdminVocabWord(wordId: number): Promise<AdminVocabWordDetail> {
+  const { data } = await apiClient.get<AdminVocabWordDetail>(`/admin/words/${wordId}`);
+  return data;
+}
+
+export async function addAdminVocabWordNestMember(
+  wordId: number,
+  form: string,
+): Promise<AdminVocabWordDetail> {
+  const { data } = await apiClient.post<AdminVocabWordDetail>(`/admin/words/${wordId}/nest-members`, {
+    form,
+  });
+  return data;
+}
+
+export async function removeAdminVocabWordNestMember(
+  wordId: number,
+  memberWordId: number,
+): Promise<AdminVocabWordDetail> {
+  const { data } = await apiClient.delete<AdminVocabWordDetail>(
+    `/admin/words/${wordId}/nest-members/${memberWordId}`,
+  );
+  return data;
 }
 
 export type AdminDictionary = {
@@ -418,6 +465,7 @@ export type AdminDictionary = {
   primaryLanguageId: number;
   learningLanguageId: number;
   userPairCount: number;
+  partOfSpeech: string | null;
   tagIds: number[];
   tagNames: string[];
 };
@@ -453,8 +501,22 @@ export type AdminTranslationInput = {
   primaryLanguageId: number;
   primaryText: string;
   learningLanguageId: number;
+  learningText?: string;
+  learningTexts?: string[];
+  tagIds?: number[];
+  partOfSpeech?: string | null;
+};
+
+export type AdminTranslationRowInput = {
+  primaryText: string;
   learningText: string;
   tagIds?: number[];
+  partOfSpeech?: string | null;
+};
+
+export type AdminTranslationBatchResult = {
+  created: AdminTranslation[];
+  skipped: Array<{ label: string; error: string }>;
 };
 
 export async function getAdminTranslations(
@@ -475,6 +537,30 @@ export async function createAdminTranslation(
   payload: AdminTranslationInput,
 ): Promise<AdminTranslation> {
   const { data } = await apiClient.post<AdminTranslation>("/admin/translations", payload);
+  return data;
+}
+
+export async function createAdminTranslationRows(
+  payload: {
+    primaryLanguageId: number;
+    learningLanguageId: number;
+    rows: AdminTranslationRowInput[];
+  },
+): Promise<AdminTranslationBatchResult> {
+  const { data } = await apiClient.post<AdminTranslationBatchResult>(
+    "/admin/translations",
+    payload,
+  );
+  return data;
+}
+
+export async function createAdminTranslations(
+  payload: AdminTranslationInput & { learningTexts: string[] },
+): Promise<AdminTranslationBatchResult> {
+  const { data } = await apiClient.post<AdminTranslationBatchResult>(
+    "/admin/translations",
+    payload,
+  );
   return data;
 }
 

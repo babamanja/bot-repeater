@@ -12,6 +12,7 @@
   "dependencies": {
     "@prisma/client": "^6.19.0",
     "@vocab-bot/shared": "*",
+    "dotenv": "^16.4.7",
     "telegraf": "^4.16.3"
   },
   "devDependencies": {

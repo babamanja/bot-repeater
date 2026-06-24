@@ -1,7 +1,30 @@
-import { pairMatchesUserLanguages, resolvePairWordsForUser } from "@vocab-bot/shared/vocabPair";
+import {
+  isVocabPairRelationType,
+  pairMatchesUserRelation,
+  resolvePairSidesForUser,
+  type VocabPairRelationType,
+} from "@vocab-bot/shared/vocabPairRelation";
+import {
+  collectNestAlternateTexts,
+  mergeVocabAlternateAnswers,
+  type NestMember,
+} from "@vocab-bot/shared/vocabNest";
+import * as nestRepository from "../db/nestRepository.js";
+import { evaluateVocabAnswer } from "@vocab-bot/shared/vocabReviewAnswer";
+import {
+  entryToPairSchedules,
+  selectWorstCardDirection,
+  type ReviewCardDirection,
+} from "@vocab-bot/shared/vocabReviewCard";
+import { normalizePartOfSpeechInput } from "@vocab-bot/shared/partOfSpeech";
+import * as userRepository from "../db/userRepository.js";
 import { getPrisma } from "../db/prisma.js";
 import * as dictionaryRepository from "../db/dictionaryRepository.js";
-import { initialSchedule } from "../domain/pimsleur-schedule.js";
+import {
+  initialSchedule,
+  scheduleAfterCorrect,
+  scheduleAfterWrong,
+} from "../domain/pimsleur-schedule.js";
 import {
   vocabPairIncludesPrimaryWordWhere,
 } from "../db/vocabPairRepository.js";
@@ -21,6 +44,7 @@ export type WordSuggestion = {
 
 export type AddedWord = {
   vocabPairId: number;
+  relationType: VocabPairRelationType;
   primaryWord: string;
   learningWord: string;
 };
@@ -55,20 +79,12 @@ async function findOrCreateVocabWord(
   languageId: number,
   text: string,
 ): Promise<{ id: number; text: string }> {
-  const word = await getPrisma().vocabWord.upsert({
-    where: { languageId_text: { languageId, text } },
-    update: {},
-    create: { languageId, text },
-  });
+  const word = await nestRepository.ensureVocabWordWithNest(languageId, text);
   return { id: word.id, text: word.text };
 }
 
 async function upsertVocabWord(languageId: number, text: string): Promise<number> {
-  const word = await getPrisma().vocabWord.upsert({
-    where: { languageId_text: { languageId, text } },
-    update: { text },
-    create: { languageId, text },
-  });
+  const word = await nestRepository.ensureVocabWordWithNest(languageId, text);
   return word.id;
 }
 
@@ -77,7 +93,10 @@ async function findExistingPairsForPrimaryWord(
   learningLangId: number,
 ): Promise<WordSuggestion[]> {
   const pairs = await getPrisma().vocabPair.findMany({
-    where: vocabPairIncludesPrimaryWordWhere(primaryWordId, learningLangId),
+    where: {
+      relationType: "translation",
+      ...vocabPairIncludesPrimaryWordWhere(primaryWordId, learningLangId),
+    },
     select: {
       id: true,
       wordA: { select: { id: true, text: true, languageId: true } },
@@ -103,6 +122,8 @@ async function attachUserToVocabPair(
   await dictionaryRepository.attachPairToUserDefaultDictionary(userId, pairId, {
     pimsleurLevel: schedule.pimsleurLevel,
     nextReviewMs: schedule.nextReviewMs,
+    pimsleurLevelReverse: schedule.pimsleurLevel,
+    nextReviewMsReverse: schedule.nextReviewMs,
   });
 }
 
@@ -115,6 +136,7 @@ async function loadAddedWord(
     where: { id: pairId },
     select: {
       id: true,
+      relationType: true,
       wordA: { select: { text: true, languageId: true } },
       wordB: { select: { text: true, languageId: true } },
     },
@@ -122,9 +144,10 @@ async function loadAddedWord(
   if (!pair) {
     return null;
   }
-  const resolved = resolvePairWordsForUser(
+  const resolved = resolvePairSidesForUser(
     pair.wordA,
     pair.wordB,
+    pair.relationType,
     primaryLangId,
     learningLangId,
   );
@@ -133,6 +156,7 @@ async function loadAddedWord(
   }
   return {
     vocabPairId: pair.id,
+    relationType: pair.relationType,
     primaryWord: resolved.primaryWord.text,
     learningWord: resolved.learningWord.text,
   };
@@ -183,7 +207,12 @@ export async function lookupPrimaryWord(userId: number, primaryWordRaw: string) 
 
 export async function addWordForUser(
   userId: number,
-  input: { vocabPairId?: number; primaryWordId?: number; learningWord?: string },
+  input: {
+    vocabPairId?: number;
+    primaryWordId?: number;
+    learningWord?: string;
+    relationType?: VocabPairRelationType;
+  },
 ) {
   if (!Number.isInteger(userId) || userId < 1) {
     return { ok: false as const, status: 401, error: "unauthorized" };
@@ -195,6 +224,10 @@ export async function addWordForUser(
   }
 
   const nowMs = Date.now();
+  const relationType =
+    input.relationType != null && isVocabPairRelationType(input.relationType)
+      ? input.relationType
+      : "translation";
 
   if (input.vocabPairId != null) {
     const pairId = input.vocabPairId;
@@ -205,15 +238,17 @@ export async function addWordForUser(
     const pair = await getPrisma().vocabPair.findUnique({
       where: { id: pairId },
       select: {
+        relationType: true,
         wordA: { select: { languageId: true } },
         wordB: { select: { languageId: true } },
       },
     });
     if (
       !pair ||
-      !pairMatchesUserLanguages(
+      !pairMatchesUserRelation(
         pair.wordA,
         pair.wordB,
+        pair.relationType,
         languages.primaryLangId,
         languages.learningLangId,
       )
@@ -251,11 +286,16 @@ export async function addWordForUser(
 
   const learningWordId = await upsertVocabWord(languages.learningLangId, learningWord);
 
-  let pair = await vocabPairRepository.findTranslationByWordIds(primaryWordId, learningWordId);
+  let pair = await vocabPairRepository.findTranslationByWordIds(
+    primaryWordId,
+    learningWordId,
+    relationType,
+  );
   if (!pair) {
     pair = await vocabPairRepository.insertTranslation({
       wordIdOne: primaryWordId,
       wordIdTwo: learningWordId,
+      relationType,
       primaryLanguageId: languages.primaryLangId,
       learningLanguageId: languages.learningLangId,
     });
@@ -267,4 +307,621 @@ export async function addWordForUser(
     return { ok: false as const, status: 404, error: "pair_not_found" };
   }
   return { ok: true as const, word: added };
+}
+
+export type DueReviewWord = {
+  vocabPairId: number;
+  direction: ReviewCardDirection;
+  promptWord: string;
+  primaryWord: string;
+  learningWord: string;
+  pimsleurLevel: number;
+  nextReviewMs: number;
+};
+
+function buildDueReviewWord(
+  vocabPairId: number,
+  direction: ReviewCardDirection,
+  primaryWord: string,
+  learningWord: string,
+  entry: {
+    pimsleurLevel: number;
+    nextReviewMs: bigint;
+    pimsleurLevelReverse: number;
+    nextReviewMsReverse: bigint;
+  },
+): DueReviewWord {
+  const promptWord = direction === "learning_to_primary" ? learningWord : primaryWord;
+  const schedules = entryToPairSchedules(entry);
+  const schedule =
+    direction === "learning_to_primary" ? schedules.learningToPrimary : schedules.primaryToLearning;
+  return {
+    vocabPairId,
+    direction,
+    promptWord,
+    primaryWord,
+    learningWord,
+    pimsleurLevel: schedule.pimsleurLevel,
+    nextReviewMs: Number(schedule.nextReviewMs),
+  };
+}
+
+function resolveReviewDirection(
+  entry: {
+    pimsleurLevel: number;
+    nextReviewMs: bigint;
+    pimsleurLevelReverse: number;
+    nextReviewMsReverse: bigint;
+  },
+  direction?: ReviewCardDirection,
+): ReviewCardDirection {
+  const schedules = entryToPairSchedules(entry);
+  const worstDirection = selectWorstCardDirection(schedules);
+  if (direction != null && direction !== worstDirection) {
+    return worstDirection;
+  }
+  return direction ?? worstDirection;
+}
+
+function expectedAnswerForDirection(
+  direction: ReviewCardDirection,
+  primaryWord: string,
+  learningWord: string,
+  alternatePrimaryAnswers: string[],
+  alternateLearningAnswers: string[],
+  primaryNestMembers: NestMember[] = [],
+  learningNestMembers: NestMember[] = [],
+): { expected: string; alternates: string[] } {
+  if (direction === "learning_to_primary") {
+    return {
+      expected: primaryWord,
+      alternates: mergeVocabAlternateAnswers(
+        alternatePrimaryAnswers,
+        collectNestAlternateTexts(primaryNestMembers, primaryWord),
+      ),
+    };
+  }
+  return {
+    expected: learningWord,
+    alternates: mergeVocabAlternateAnswers(
+      alternateLearningAnswers,
+      collectNestAlternateTexts(learningNestMembers, learningWord),
+    ),
+  };
+}
+
+async function resolveLemmaWordIdsForEntry(
+  vocabPair: {
+    wordA: { id: number; text: string; languageId: number };
+    wordB: { id: number; text: string; languageId: number };
+    relationType: VocabPairRelationType;
+  },
+  primaryLangId: number,
+  learningLangId: number,
+): Promise<{ primaryWordId: number; learningWordId: number } | null> {
+  const resolved = resolvePairSidesForUser(
+    vocabPair.wordA,
+    vocabPair.wordB,
+    vocabPair.relationType,
+    primaryLangId,
+    learningLangId,
+  );
+  if (!resolved) {
+    return null;
+  }
+  const primaryWord = resolved.primaryWord as { id: number };
+  const learningWord = resolved.learningWord as { id: number };
+  return {
+    primaryWordId: primaryWord.id,
+    learningWordId: learningWord.id,
+  };
+}
+
+async function loadNestMembersForWordIds(
+  primaryWordId: number,
+  learningWordId: number,
+): Promise<{ primaryNestMembers: NestMember[]; learningNestMembers: NestMember[] }> {
+  const membersByWordId = await nestRepository.selectNestMembersForWordIds([
+    primaryWordId,
+    learningWordId,
+  ]);
+  return {
+    primaryNestMembers: membersByWordId.get(primaryWordId) ?? [],
+    learningNestMembers: membersByWordId.get(learningWordId) ?? [],
+  };
+}
+
+function formatNestMembersForDetail(
+  members: NestMember[],
+  anchorWordId: number,
+): NestMember[] {
+  return members.filter((member) => member.wordId !== anchorWordId);
+}
+
+function mapLearningNestForDetail(
+  members: NestMember[],
+  anchorWordId: number,
+): Array<NestMember & { isAnchor: boolean }> {
+  return members.map((member) => ({
+    ...member,
+    isAnchor: member.wordId === anchorWordId,
+  }));
+}
+
+function shuffleInPlace<T>(items: T[]): void {
+  for (let i = items.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+}
+
+export async function getDueWordsForReview(userId: number) {
+  if (!Number.isInteger(userId) || userId < 1) {
+    return { ok: false as const, status: 401, error: "unauthorized" };
+  }
+
+  const languages = await requireUserLanguages(userId);
+  if (!languages) {
+    return { ok: false as const, status: 400, error: "languages_not_set" };
+  }
+
+  await dictionaryRepository.ensureDefaultDictionaryForUser(userId);
+
+  const dictionaryId = await dictionaryRepository.selectDefaultDictionaryIdForUser(userId);
+  if (dictionaryId == null) {
+    return { ok: true as const, words: [] as DueReviewWord[] };
+  }
+
+  const nowMs = BigInt(Date.now());
+  const dueRows = await getPrisma().dictionaryEntry.findMany({
+    where: {
+      dictionaryId,
+      OR: [{ nextReviewMs: { lte: nowMs } }, { nextReviewMsReverse: { lte: nowMs } }],
+    },
+    include: {
+      vocabPair: {
+        include: {
+          wordA: { select: { text: true, languageId: true } },
+          wordB: { select: { text: true, languageId: true } },
+        },
+      },
+    },
+  });
+
+  shuffleInPlace(dueRows);
+  const words: DueReviewWord[] = [];
+
+  for (const row of dueRows) {
+    const resolved = resolvePairSidesForUser(
+      row.vocabPair.wordA,
+      row.vocabPair.wordB,
+      row.vocabPair.relationType,
+      languages.primaryLangId,
+      languages.learningLangId,
+    );
+    if (!resolved) {
+      continue;
+    }
+    const direction = selectWorstCardDirection(entryToPairSchedules(row));
+    words.push(
+      buildDueReviewWord(
+        row.vocabPairId,
+        direction,
+        resolved.primaryWord.text,
+        resolved.learningWord.text,
+        row,
+      ),
+    );
+  }
+
+  return { ok: true as const, words };
+}
+
+export async function checkReviewAnswer(
+  userId: number,
+  vocabPairId: number,
+  answer: string,
+  directionRaw?: ReviewCardDirection,
+) {
+  const trimmed = answer.trim();
+  if (!trimmed) {
+    return { ok: false as const, status: 400, error: "invalid_review_answer" };
+  }
+
+  const languages = await requireUserLanguages(userId);
+  if (!languages) {
+    return { ok: false as const, status: 400, error: "languages_not_set" };
+  }
+
+  const entry = await dictionaryRepository.selectDefaultDictionaryEntry(userId, vocabPairId);
+  if (!entry) {
+    return { ok: false as const, status: 404, error: "pair_not_found" };
+  }
+
+  const resolved = resolvePairSidesForUser(
+    entry.vocabPair.wordA,
+    entry.vocabPair.wordB,
+    entry.vocabPair.relationType,
+    languages.primaryLangId,
+    languages.learningLangId,
+  );
+  if (!resolved) {
+    return { ok: false as const, status: 404, error: "pair_not_found" };
+  }
+
+  const direction = resolveReviewDirection(entry, directionRaw);
+  const lemmaIds = await resolveLemmaWordIdsForEntry(
+    entry.vocabPair,
+    languages.primaryLangId,
+    languages.learningLangId,
+  );
+  if (!lemmaIds) {
+    return { ok: false as const, status: 404, error: "pair_not_found" };
+  }
+  const nestMembers = await loadNestMembersForWordIds(
+    lemmaIds.primaryWordId,
+    lemmaIds.learningWordId,
+  );
+  const { expected, alternates } = expectedAnswerForDirection(
+    direction,
+    resolved.primaryWord.text,
+    resolved.learningWord.text,
+    entry.alternatePrimaryAnswers,
+    entry.alternateLearningAnswers,
+    nestMembers.primaryNestMembers,
+    nestMembers.learningNestMembers,
+  );
+
+  const match = evaluateVocabAnswer(trimmed, expected, alternates);
+  const schedules = entryToPairSchedules(entry);
+  const activeSchedule =
+    direction === "learning_to_primary" ? schedules.learningToPrimary : schedules.primaryToLearning;
+
+  if (match === "close") {
+    return {
+      ok: true as const,
+      direction,
+      promptWord: direction === "learning_to_primary" ? resolved.learningWord.text : resolved.primaryWord.text,
+      expectedWord: expected,
+      primaryWord: resolved.primaryWord.text,
+      learningWord: resolved.learningWord.text,
+      correct: false,
+      match,
+      userAnswer: trimmed,
+      pimsleurLevel: activeSchedule.pimsleurLevel,
+      nextReviewMs: Number(activeSchedule.nextReviewMs),
+    };
+  }
+
+  const reviewResult = await applyReviewResult(
+    userId,
+    vocabPairId,
+    match === "exact" ? "know" : "dont",
+    direction,
+  );
+  if (reviewResult.ok === false) {
+    return reviewResult;
+  }
+
+  return {
+    ok: true as const,
+    direction,
+    promptWord: direction === "learning_to_primary" ? reviewResult.learningWord : reviewResult.primaryWord,
+    expectedWord: expected,
+    primaryWord: reviewResult.primaryWord,
+    learningWord: reviewResult.learningWord,
+    correct: match === "exact",
+    match,
+    userAnswer: trimmed,
+    pimsleurLevel: reviewResult.pimsleurLevel,
+    nextReviewMs: reviewResult.nextReviewMs,
+  };
+}
+
+export async function applyReviewResult(
+  userId: number,
+  vocabPairId: number,
+  result: "know" | "dont",
+  directionRaw?: ReviewCardDirection,
+) {
+  if (!Number.isInteger(userId) || userId < 1) {
+    return { ok: false as const, status: 401, error: "unauthorized" };
+  }
+  if (!Number.isInteger(vocabPairId) || vocabPairId < 1) {
+    return { ok: false as const, status: 400, error: "invalid_pair_id" };
+  }
+  if (result !== "know" && result !== "dont") {
+    return { ok: false as const, status: 400, error: "invalid_review_result" };
+  }
+
+  const languages = await requireUserLanguages(userId);
+  if (!languages) {
+    return { ok: false as const, status: 400, error: "languages_not_set" };
+  }
+
+  const entry = await dictionaryRepository.selectDefaultDictionaryEntry(userId, vocabPairId);
+  if (!entry) {
+    return { ok: false as const, status: 404, error: "pair_not_found" };
+  }
+
+  const nowMs = Date.now();
+  const direction = resolveReviewDirection(entry, directionRaw);
+  const schedules = entryToPairSchedules(entry);
+  const currentLevel =
+    direction === "learning_to_primary"
+      ? schedules.learningToPrimary.pimsleurLevel
+      : schedules.primaryToLearning.pimsleurLevel;
+  const schedule =
+    result === "know" ? scheduleAfterCorrect(currentLevel, nowMs) : scheduleAfterWrong(nowMs);
+
+  const updateData =
+    direction === "learning_to_primary"
+      ? {
+          pimsleurLevel: schedule.pimsleurLevel,
+          nextReviewMs: schedule.nextReviewMs,
+        }
+      : {
+          pimsleurLevelReverse: schedule.pimsleurLevel,
+          nextReviewMsReverse: schedule.nextReviewMs,
+        };
+
+  await getPrisma().dictionaryEntry.update({
+    where: {
+      dictionaryId_vocabPairId: {
+        dictionaryId: entry.dictionaryId,
+        vocabPairId,
+      },
+    },
+    data: updateData,
+  });
+
+  const resolved = resolvePairSidesForUser(
+    entry.vocabPair.wordA,
+    entry.vocabPair.wordB,
+    entry.vocabPair.relationType,
+    languages.primaryLangId,
+    languages.learningLangId,
+  );
+  if (!resolved) {
+    return { ok: false as const, status: 404, error: "pair_not_found" };
+  }
+
+  return {
+    ok: true as const,
+    direction,
+    primaryWord: resolved.primaryWord.text,
+    learningWord: resolved.learningWord.text,
+    pimsleurLevel: schedule.pimsleurLevel,
+    nextReviewMs: Number(schedule.nextReviewMs),
+  };
+}
+
+export type UpdateMyWordInput = {
+  partOfSpeech?: string | null;
+  example?: string | null;
+};
+
+export async function getMyWordDetail(userId: number, vocabPairId: number) {
+  if (!Number.isInteger(userId) || userId < 1) {
+    return { ok: false as const, status: 401, error: "unauthorized" };
+  }
+  if (!Number.isInteger(vocabPairId) || vocabPairId < 1) {
+    return { ok: false as const, status: 400, error: "invalid_pair_id" };
+  }
+
+  const languages = await requireUserLanguages(userId);
+  if (!languages) {
+    return { ok: false as const, status: 400, error: "languages_not_set" };
+  }
+
+  const word = await userRepository.selectUserWordByPairId(userId, vocabPairId);
+  if (!word) {
+    return { ok: false as const, status: 404, error: "pair_not_found" };
+  }
+
+  const entry = await userRepository.selectDictionaryEntryForUserPair(userId, vocabPairId);
+  if (!entry) {
+    return { ok: false as const, status: 404, error: "pair_not_found" };
+  }
+
+  const lemmaIds = await resolveLemmaWordIdsForEntry(
+    entry.vocabPair,
+    languages.primaryLangId,
+    languages.learningLangId,
+  );
+  if (!lemmaIds) {
+    return { ok: false as const, status: 404, error: "pair_not_found" };
+  }
+
+  const nestMembers = await loadNestMembersForWordIds(
+    lemmaIds.primaryWordId,
+    lemmaIds.learningWordId,
+  );
+
+  return {
+    ok: true as const,
+    word: {
+      ...word,
+      primaryNestMembers: formatNestMembersForDetail(
+        nestMembers.primaryNestMembers,
+        lemmaIds.primaryWordId,
+      ),
+      learningNestMembers: formatNestMembersForDetail(
+        nestMembers.learningNestMembers,
+        lemmaIds.learningWordId,
+      ),
+      learningNest: mapLearningNestForDetail(
+        nestMembers.learningNestMembers,
+        lemmaIds.learningWordId,
+      ),
+    },
+  };
+}
+
+export async function updateMyWord(
+  userId: number,
+  vocabPairId: number,
+  input: UpdateMyWordInput,
+) {
+  if (!Number.isInteger(userId) || userId < 1) {
+    return { ok: false as const, status: 401, error: "unauthorized" };
+  }
+  if (!Number.isInteger(vocabPairId) || vocabPairId < 1) {
+    return { ok: false as const, status: 400, error: "invalid_pair_id" };
+  }
+
+  const partOfSpeech = normalizePartOfSpeechInput(input.partOfSpeech);
+  if (partOfSpeech === undefined && input.partOfSpeech !== undefined) {
+    return { ok: false as const, status: 400, error: "invalid_part_of_speech" };
+  }
+
+  const entry = await userRepository.selectDictionaryEntryForUserPair(userId, vocabPairId);
+  if (!entry) {
+    return { ok: false as const, status: 404, error: "pair_not_found" };
+  }
+
+  const pairUpdate: { partOfSpeech?: string | null; example?: string | null } = {};
+  if (partOfSpeech !== undefined) {
+    pairUpdate.partOfSpeech = partOfSpeech;
+  }
+  if (input.example !== undefined) {
+    pairUpdate.example = typeof input.example === "string" ? input.example.trim() || null : null;
+  }
+
+  if (Object.keys(pairUpdate).length === 0) {
+    return { ok: false as const, status: 400, error: "nothing_to_update" };
+  }
+
+  await getPrisma().vocabPair.update({
+    where: { id: vocabPairId },
+    data: pairUpdate,
+  });
+
+  return getMyWordDetail(userId, vocabPairId);
+}
+
+export type WordNestSide = "primary" | "learning";
+
+export async function addNestMemberToMyWord(
+  userId: number,
+  vocabPairId: number,
+  input: { side: WordNestSide; form: string },
+) {
+  if (!Number.isInteger(userId) || userId < 1) {
+    return { ok: false as const, status: 401, error: "unauthorized" };
+  }
+  if (!Number.isInteger(vocabPairId) || vocabPairId < 1) {
+    return { ok: false as const, status: 400, error: "invalid_pair_id" };
+  }
+
+  const form = input.form.trim();
+  if (!form) {
+    return { ok: false as const, status: 400, error: "nest_form_required" };
+  }
+  if (input.side !== "primary" && input.side !== "learning") {
+    return { ok: false as const, status: 400, error: "invalid_nest_side" };
+  }
+
+  const languages = await requireUserLanguages(userId);
+  if (!languages) {
+    return { ok: false as const, status: 400, error: "languages_not_set" };
+  }
+
+  const entry = await userRepository.selectDictionaryEntryForUserPair(userId, vocabPairId);
+  if (!entry) {
+    return { ok: false as const, status: 404, error: "pair_not_found" };
+  }
+  if (entry.vocabPair.relationType !== "translation") {
+    return { ok: false as const, status: 400, error: "nest_members_only_for_translation" };
+  }
+
+  const lemmaIds = await resolveLemmaWordIdsForEntry(
+    entry.vocabPair,
+    languages.primaryLangId,
+    languages.learningLangId,
+  );
+  if (!lemmaIds) {
+    return { ok: false as const, status: 404, error: "pair_not_found" };
+  }
+
+  const anchorWordId =
+    input.side === "primary" ? lemmaIds.primaryWordId : lemmaIds.learningWordId;
+  const languageId =
+    input.side === "primary" ? languages.primaryLangId : languages.learningLangId;
+
+  const anchorWord = await getPrisma().vocabWord.findUnique({
+    where: { id: anchorWordId },
+    select: { id: true, text: true, nestId: true },
+  });
+  if (!anchorWord) {
+    return { ok: false as const, status: 404, error: "pair_not_found" };
+  }
+  if (anchorWord.text.trim().toLowerCase() === form.toLowerCase()) {
+    return { ok: false as const, status: 400, error: "nest_form_same_as_anchor" };
+  }
+
+  await nestRepository.addMemberToNest(anchorWord.nestId, languageId, form);
+  return getMyWordDetail(userId, vocabPairId);
+}
+
+export async function removeNestMemberFromMyWord(
+  userId: number,
+  vocabPairId: number,
+  memberWordId: number,
+) {
+  if (!Number.isInteger(userId) || userId < 1) {
+    return { ok: false as const, status: 401, error: "unauthorized" };
+  }
+  if (!Number.isInteger(vocabPairId) || vocabPairId < 1) {
+    return { ok: false as const, status: 400, error: "invalid_pair_id" };
+  }
+  if (!Number.isInteger(memberWordId) || memberWordId < 1) {
+    return { ok: false as const, status: 400, error: "invalid_nest_member_id" };
+  }
+
+  const languages = await requireUserLanguages(userId);
+  if (!languages) {
+    return { ok: false as const, status: 400, error: "languages_not_set" };
+  }
+
+  const entry = await userRepository.selectDictionaryEntryForUserPair(userId, vocabPairId);
+  if (!entry) {
+    return { ok: false as const, status: 404, error: "pair_not_found" };
+  }
+
+  const lemmaIds = await resolveLemmaWordIdsForEntry(
+    entry.vocabPair,
+    languages.primaryLangId,
+    languages.learningLangId,
+  );
+  if (!lemmaIds) {
+    return { ok: false as const, status: 404, error: "pair_not_found" };
+  }
+
+  const linkedWordIds = [lemmaIds.primaryWordId, lemmaIds.learningWordId];
+  if (linkedWordIds.includes(memberWordId)) {
+    return { ok: false as const, status: 400, error: "cannot_remove_anchor_word" };
+  }
+
+  const memberWord = await getPrisma().vocabWord.findUnique({
+    where: { id: memberWordId },
+    select: { id: true, nestId: true },
+  });
+  if (!memberWord) {
+    return { ok: false as const, status: 404, error: "nest_member_not_found" };
+  }
+
+  const anchorNestIds = await Promise.all(
+    linkedWordIds.map((wordId) => nestRepository.selectNestIdForWord(wordId)),
+  );
+  if (!anchorNestIds.includes(memberWord.nestId)) {
+    return { ok: false as const, status: 404, error: "nest_member_not_found" };
+  }
+
+  const removed = await nestRepository.removeNestMember(memberWordId, memberWord.nestId);
+  if (!removed) {
+    return { ok: false as const, status: 400, error: "nest_member_not_removable" };
+  }
+
+  return getMyWordDetail(userId, vocabPairId);
 }

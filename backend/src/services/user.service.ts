@@ -240,7 +240,7 @@ export async function getUserDashboardStats(userId: number) {
     prisma.dictionaryEntry.count({
       where: {
         dictionary: { members: { some: { userId } } },
-        nextReviewMs: { lte: nowMs },
+        OR: [{ nextReviewMs: { lte: nowMs } }, { nextReviewMsReverse: { lte: nowMs } }],
       },
     }),
     prisma.user.findUnique({

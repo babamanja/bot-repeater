@@ -1,5 +1,7 @@
 import { Prisma } from "@prisma/client";
-import { resolvePairWordsForUser } from "@vocab-bot/shared/vocabPair";
+import { resolvePairSidesForUser } from "@vocab-bot/shared/vocabPairRelation";
+import type { VocabPairRelationType } from "@vocab-bot/shared/vocabPairRelation";
+import { entryToPairSchedules, pairNextReviewMs, pairPimsleurLevel } from "@vocab-bot/shared/vocabReviewCard";
 import * as dictionaryRepository from "./dictionaryRepository.js";
 import { getPrisma } from "./prisma.js";
 
@@ -126,13 +128,94 @@ export async function restoreSoftDeletedUser(id: number): Promise<boolean> {
 
 export type UserWordRow = {
   vocabPairId: number;
+  relationType: VocabPairRelationType;
   dictionaryId: number;
   dictionaryName: string;
   primaryWord: string;
   learningWord: string;
+  partOfSpeech: string | null;
+  example: string | null;
   pimsleurLevel: number;
+  pimsleurLevelForward: number;
+  pimsleurLevelReverse: number;
   nextReviewMs: string;
 };
+
+export type UserWordDetailRow = UserWordRow & {
+  nextReviewMsForward: string;
+  nextReviewMsReverse: string;
+};
+
+type DictionaryEntryWithPair = Prisma.DictionaryEntryGetPayload<{
+  include: {
+    dictionary: { select: { id: true; name: true } };
+    vocabPair: {
+      include: {
+        wordA: { select: { id: true, text: true, languageId: true } },
+        wordB: { select: { id: true, text: true, languageId: true } },
+      },
+    };
+  };
+}>;
+
+const dictionaryEntryWithPairInclude = {
+  dictionary: { select: { id: true, name: true } },
+  vocabPair: {
+    include: {
+      wordA: { select: { id: true, text: true, languageId: true } },
+      wordB: { select: { id: true, text: true, languageId: true } },
+    },
+  },
+} as const;
+
+function mapDictionaryEntryToUserWordRow(
+  row: DictionaryEntryWithPair,
+  primaryLanguageId: number,
+  learningLanguageId: number,
+): UserWordRow | null {
+  const resolved = resolvePairSidesForUser(
+    row.vocabPair.wordA,
+    row.vocabPair.wordB,
+    row.vocabPair.relationType,
+    primaryLanguageId,
+    learningLanguageId,
+  );
+  if (!resolved) {
+    return null;
+  }
+  const schedules = entryToPairSchedules(row);
+  return {
+    vocabPairId: row.vocabPairId,
+    relationType: row.vocabPair.relationType,
+    dictionaryId: row.dictionary.id,
+    dictionaryName: row.dictionary.name,
+    primaryWord: resolved.primaryWord.text,
+    learningWord: resolved.learningWord.text,
+    partOfSpeech: row.vocabPair.partOfSpeech,
+    example: row.vocabPair.example,
+    pimsleurLevel: pairPimsleurLevel(schedules),
+    pimsleurLevelForward: schedules.learningToPrimary.pimsleurLevel,
+    pimsleurLevelReverse: schedules.primaryToLearning.pimsleurLevel,
+    nextReviewMs: pairNextReviewMs(schedules).toString(),
+  };
+}
+
+function mapDictionaryEntryToUserWordDetailRow(
+  row: DictionaryEntryWithPair,
+  primaryLanguageId: number,
+  learningLanguageId: number,
+): UserWordDetailRow | null {
+  const base = mapDictionaryEntryToUserWordRow(row, primaryLanguageId, learningLanguageId);
+  if (!base) {
+    return null;
+  }
+  const schedules = entryToPairSchedules(row);
+  return {
+    ...base,
+    nextReviewMsForward: schedules.learningToPrimary.nextReviewMs.toString(),
+    nextReviewMsReverse: schedules.primaryToLearning.nextReviewMs.toString(),
+  };
+}
 
 export type UserWordsListQuery = {
   userId: number;
@@ -187,42 +270,66 @@ export async function selectUserWords(
       orderBy,
       skip: (input.page - 1) * input.pageSize,
       take: input.pageSize,
-      include: {
-        dictionary: { select: { id: true, name: true } },
-        vocabPair: {
-          include: {
-            wordA: { select: { text: true, languageId: true } },
-            wordB: { select: { text: true, languageId: true } },
-          },
-        },
-      },
+      include: dictionaryEntryWithPairInclude,
     }),
     getPrisma().dictionaryEntry.count({ where }),
   ]);
 
   return {
     rows: rows.flatMap((row) => {
-      const resolved = resolvePairWordsForUser(
-        row.vocabPair.wordA,
-        row.vocabPair.wordB,
+      const mapped = mapDictionaryEntryToUserWordRow(
+        row,
         user.primaryLanguageId!,
         user.learningLanguageId!,
       );
-      if (!resolved) {
-        return [];
-      }
-      return [
-        {
-          vocabPairId: row.vocabPairId,
-          dictionaryId: row.dictionary.id,
-          dictionaryName: row.dictionary.name,
-          primaryWord: resolved.primaryWord.text,
-          learningWord: resolved.learningWord.text,
-          pimsleurLevel: row.pimsleurLevel,
-          nextReviewMs: row.nextReviewMs.toString(),
-        },
-      ];
+      return mapped ? [mapped] : [];
     }),
     total,
   };
+}
+
+export async function selectUserWordByPairId(
+  userId: number,
+  vocabPairId: number,
+): Promise<UserWordDetailRow | null> {
+  const user = await getPrisma().user.findUnique({
+    where: { id: userId },
+    select: { primaryLanguageId: true, learningLanguageId: true },
+  });
+  if (user?.primaryLanguageId == null || user.learningLanguageId == null) {
+    return null;
+  }
+
+  await dictionaryRepository.ensureDefaultDictionaryForUser(userId);
+
+  const row = await getPrisma().dictionaryEntry.findFirst({
+    where: {
+      vocabPairId,
+      dictionary: { members: { some: { userId } } },
+    },
+    include: dictionaryEntryWithPairInclude,
+  });
+  if (!row) {
+    return null;
+  }
+
+  return mapDictionaryEntryToUserWordDetailRow(
+    row,
+    user.primaryLanguageId,
+    user.learningLanguageId,
+  );
+}
+
+export async function selectDictionaryEntryForUserPair(
+  userId: number,
+  vocabPairId: number,
+): Promise<DictionaryEntryWithPair | null> {
+  await dictionaryRepository.ensureDefaultDictionaryForUser(userId);
+  return getPrisma().dictionaryEntry.findFirst({
+    where: {
+      vocabPairId,
+      dictionary: { members: { some: { userId } } },
+    },
+    include: dictionaryEntryWithPairInclude,
+  });
 }

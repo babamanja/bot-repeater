@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
+  claimTelegramLinkCode,
   createTelegramLinkCode,
   getTelegramLinkStatus,
+  type LanguageChoiceOption,
   type TelegramLinkCode,
   type TelegramLinkStatus,
   unlinkTelegram,
@@ -28,17 +30,43 @@ function mapTelegramError(code: string, t: (key: string) => string): string {
       return t("profilePage.telegram.notLinkedError");
     case "cannot_unlink_only_login_method":
       return t("profilePage.telegram.cannotUnlinkOnlyLogin");
+    case "invalid or expired code":
+      return t("profilePage.telegram.invalidCode");
+    case "code must be opened in telegram":
+      return t("profilePage.telegram.codeMustOpenInTelegram");
+    case "web account already linked to another telegram":
+      return t("profilePage.telegram.alreadyLinkedElsewhere");
+    case "language_choice_required":
+      return t("profilePage.telegram.languageChoiceRequired");
     default:
       return t("profilePage.telegram.actionFailed");
   }
+}
+
+function formatLanguageOption(
+  option: LanguageChoiceOption,
+  t: (key: string, vars?: Record<string, string>) => string,
+): string {
+  return t("profilePage.telegram.languageOption", {
+    primary: option.primaryLanguageName,
+    learning: option.learningLanguageName,
+    source:
+      option.source === "web"
+        ? t("profilePage.telegram.languageSourceWeb")
+        : t("profilePage.telegram.languageSourceTelegram"),
+  });
 }
 
 export default function TelegramLinkCard() {
   const { t, i18n } = useTranslation();
   const [status, setStatus] = useState<TelegramLinkStatus | null>(null);
   const [linkCode, setLinkCode] = useState<TelegramLinkCode | null>(null);
+  const [botCodeInput, setBotCodeInput] = useState("");
+  const [pendingBotCode, setPendingBotCode] = useState<string | null>(null);
+  const [languageOptions, setLanguageOptions] = useState<LanguageChoiceOption[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLinking, setIsLinking] = useState(false);
+  const [isClaiming, setIsClaiming] = useState(false);
   const [isUnlinking, setIsUnlinking] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -95,6 +123,50 @@ export default function TelegramLinkCard() {
     }
   }
 
+  async function handleClaimCode(languageSource?: "web" | "telegram") {
+    const rawCode = languageSource ? pendingBotCode : botCodeInput;
+    const code = rawCode?.trim() ?? "";
+    if (!code) {
+      setMessage(t("profilePage.telegram.botCodeRequired"));
+      setIsSuccess(false);
+      return;
+    }
+
+    setIsClaiming(true);
+    setMessage(null);
+    setIsSuccess(false);
+    try {
+      const result = await claimTelegramLinkCode(code, languageSource);
+      if (!result.ok) {
+        if ("needsLanguageChoice" in result && result.needsLanguageChoice) {
+          setPendingBotCode(code);
+          setLanguageOptions(result.languageOptions);
+          setMessage(t("profilePage.telegram.languageChoicePrompt"));
+          setIsSuccess(false);
+          return;
+        }
+        const errorCode = "error" in result ? result.error : "claim_failed";
+        setMessage(mapTelegramError(errorCode, t));
+        setIsSuccess(false);
+        return;
+      }
+
+      setBotCodeInput("");
+      setPendingBotCode(null);
+      setLanguageOptions(null);
+      await loadStatus();
+      setMessage(t("profilePage.telegram.claimSuccess"));
+      setIsSuccess(true);
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : t("profilePage.telegram.actionFailed"),
+      );
+      setIsSuccess(false);
+    } finally {
+      setIsClaiming(false);
+    }
+  }
+
   async function handleUnlink() {
     const confirmed = window.confirm(t("profilePage.telegram.unlinkConfirm"));
     if (!confirmed) {
@@ -106,6 +178,9 @@ export default function TelegramLinkCard() {
     try {
       await unlinkTelegram();
       setLinkCode(null);
+      setBotCodeInput("");
+      setPendingBotCode(null);
+      setLanguageOptions(null);
       await loadStatus();
       setMessage(t("profilePage.telegram.unlinked"));
       setIsSuccess(true);
@@ -140,7 +215,7 @@ export default function TelegramLinkCard() {
             type="button"
             style="secondary"
             onClick={() => void handleUnlink()}
-            disabled={isUnlinking || isLinking}
+            disabled={isUnlinking || isLinking || isClaiming}
           >
             {isUnlinking ? t("profilePage.telegram.unlinking") : t("profilePage.telegram.unlink")}
           </Button>
@@ -153,7 +228,7 @@ export default function TelegramLinkCard() {
           <Button
             type="button"
             onClick={() => void handleGenerateLink()}
-            disabled={isLinking || isUnlinking}
+            disabled={isLinking || isUnlinking || isClaiming}
           >
             {isLinking ? t("profilePage.telegram.generatingLink") : t("profilePage.telegram.generateLink")}
           </Button>
@@ -181,6 +256,48 @@ export default function TelegramLinkCard() {
               {copyHint ? <p className="upload-file__profile-hint">{copyHint}</p> : null}
             </div>
           ) : null}
+
+          <div className="profile-telegram-link">
+            <p className="upload-file__profile-hint">{t("profilePage.telegram.botCodeInstructions")}</p>
+            <label className="profile-telegram-link__field">
+              <span className="upload-file__profile-hint">{t("profilePage.telegram.botCodeLabel")}</span>
+              <input
+                className="profile-telegram-link__input"
+                type="text"
+                value={botCodeInput}
+                onChange={(event) => setBotCodeInput(event.target.value)}
+                placeholder={t("profilePage.telegram.botCodePlaceholder")}
+                disabled={isClaiming || Boolean(languageOptions)}
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </label>
+            {!languageOptions ? (
+              <Button
+                type="button"
+                style="secondary"
+                onClick={() => void handleClaimCode()}
+                disabled={isClaiming || isLinking || isUnlinking}
+              >
+                {isClaiming ? t("profilePage.telegram.claimingCode") : t("profilePage.telegram.claimCode")}
+              </Button>
+            ) : (
+              <div className="profile-telegram-link__language-choice">
+                <p className="upload-file__profile-hint">{t("profilePage.telegram.languageChoicePrompt")}</p>
+                {languageOptions.map((option) => (
+                  <Button
+                    key={option.source}
+                    type="button"
+                    style="secondary"
+                    onClick={() => void handleClaimCode(option.source)}
+                    disabled={isClaiming}
+                  >
+                    {formatLanguageOption(option, t)}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
         </>
       ) : null}
 

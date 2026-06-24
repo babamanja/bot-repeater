@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 import { trackAnalyticsEvent } from "../analytics";
 import { type PaginationMeta, type UserWord, getMyWords } from "../api/words";
 import Button from "../components/UI/Button/Button";
+import ButtonLink from "../components/UI/Button/ButtonLink";
 import Page from "../components/UI/Page";
 import PageHeader from "../components/UI/PageHeader";
 import ResponsiveDataList from "../components/UI/ResponsiveDataList";
 import type { DataListColumn } from "../components/UI/dataListTypes";
-import { formatRelativeTime } from "../utils/convertTime";
+import ReviewDueTime from "../components/ReviewDueTime";
 import AddWordModal from "./words/AddWordModal";
+import { USER_HOME_PATH, wordDetailPath } from "../paths";
 
 import "./style.scss";
 
@@ -68,13 +71,21 @@ export default function WordsPage() {
         id: "words.primaryWord",
         label: t("table.words.primaryWord"),
         mobileRole: "summary-primary",
-        render: (row) => row.primaryWord,
+        render: (row) => (
+          <Link className="words-page__word-link" to={wordDetailPath(row.vocabPairId)}>
+            {row.primaryWord}
+          </Link>
+        ),
       },
       {
         id: "words.learningWord",
         label: t("table.words.learningWord"),
         mobileRole: "summary-secondary",
-        render: (row) => row.learningWord,
+        render: (row) => (
+          <Link className="words-page__word-link" to={wordDetailPath(row.vocabPairId)}>
+            {row.learningWord}
+          </Link>
+        ),
       },
       {
         id: "words.dictionary",
@@ -83,16 +94,22 @@ export default function WordsPage() {
         render: (row) => row.dictionaryName,
       },
       {
-        id: "words.pimsleurLevel",
-        label: t("table.words.pimsleurLevel"),
+        id: "words.pimsleurLevelReverse",
+        label: t("table.words.pimsleurLevelReverse"),
         mobileRole: "detail",
-        render: (row) => row.pimsleurLevel,
+        render: (row) => row.pimsleurLevelReverse,
+      },
+      {
+        id: "words.pimsleurLevelForward",
+        label: t("table.words.pimsleurLevelForward"),
+        mobileRole: "detail",
+        render: (row) => row.pimsleurLevelForward,
       },
       {
         id: "words.nextReviewMs",
-        label: t("table.words.nextReviewMs"),
+        label: t("reviewSchedule.column"),
         mobileRole: "detail",
-        render: (row) => formatRelativeTime(Number(row.nextReviewMs)),
+        render: (row) => <ReviewDueTime nextReviewMs={Number(row.nextReviewMs)} />,
       },
     ],
     [t],
@@ -104,9 +121,14 @@ export default function WordsPage() {
         title={t("wordsPage.title")}
         subtitle={t("wordsPage.description")}
         actions={
-          <Button type="button" onClick={() => setAddWordOpen(true)}>
-            {t("wordsPage.add.open")}
-          </Button>
+          <>
+            <ButtonLink to={USER_HOME_PATH} style="secondary">
+              {t("wordsPage.review.open")}
+            </ButtonLink>
+            <Button type="button" onClick={() => setAddWordOpen(true)}>
+              {t("wordsPage.add.open")}
+            </Button>
+          </>
         }
       />
       <div className="page-toolbar">
@@ -126,7 +148,7 @@ export default function WordsPage() {
           value={sortBy}
           onChange={(event) => setSortBy(event.target.value as typeof sortBy)}
         >
-          <option value="nextReviewMs">{t("table.words.nextReviewMs")}</option>
+          <option value="nextReviewMs">{t("reviewSchedule.column")}</option>
           <option value="pimsleurLevel">{t("table.words.pimsleurLevel")}</option>
           <option value="primaryWord">{t("table.words.primaryWord")}</option>
         </select>

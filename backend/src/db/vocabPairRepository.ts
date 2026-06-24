@@ -1,4 +1,5 @@
 import { canonicalWordPairIds, resolvePairWordsForUser } from "@vocab-bot/shared/vocabPair";
+import type { VocabPairRelationType } from "@vocab-bot/shared/vocabPairRelation";
 import type { Prisma } from "@prisma/client";
 import { getPrisma } from "./prisma.js";
 
@@ -11,6 +12,8 @@ export const vocabPairWordSelect = {
 
 export const translationSelect = {
   id: true,
+  relationType: true,
+  partOfSpeech: true,
   primaryLanguageId: true,
   learningLanguageId: true,
   wordA: { select: vocabPairWordSelect },
@@ -50,27 +53,40 @@ export async function selectTranslationById(translationId: number) {
   });
 }
 
-export async function findTranslationByWordIds(wordIdOne: number, wordIdTwo: number) {
+export async function findTranslationByWordIds(
+  wordIdOne: number,
+  wordIdTwo: number,
+  relationType: VocabPairRelationType = "translation",
+) {
   const { wordAId, wordBId } = canonicalWordPairIds(wordIdOne, wordIdTwo);
   return getPrisma().vocabPair.findUnique({
-    where: { wordAId_wordBId: { wordAId, wordBId } },
+    where: {
+      wordAId_wordBId_relationType: { wordAId, wordBId, relationType },
+    },
     select: translationSelect,
   });
 }
 
+/** @deprecated Use findTranslationByWordIds */
+export const findVocabPairByWordIds = findTranslationByWordIds;
+
 export async function insertTranslation(input: {
   wordIdOne: number;
   wordIdTwo: number;
+  relationType?: VocabPairRelationType;
   primaryLanguageId?: number;
   learningLanguageId?: number;
+  partOfSpeech?: string | null;
 }) {
   const { wordAId, wordBId } = canonicalWordPairIds(input.wordIdOne, input.wordIdTwo);
   return getPrisma().vocabPair.create({
     data: {
       wordAId,
       wordBId,
+      relationType: input.relationType ?? "translation",
       primaryLanguageId: input.primaryLanguageId ?? null,
       learningLanguageId: input.learningLanguageId ?? null,
+      partOfSpeech: input.partOfSpeech ?? null,
     },
     select: translationSelect,
   });
@@ -87,6 +103,7 @@ export async function updateTranslationWordIds(
     wordIdTwo: number;
     primaryLanguageId: number;
     learningLanguageId: number;
+    partOfSpeech?: string | null;
   },
 ) {
   const { wordAId, wordBId } = canonicalWordPairIds(input.wordIdOne, input.wordIdTwo);
@@ -97,6 +114,7 @@ export async function updateTranslationWordIds(
       wordBId,
       primaryLanguageId: input.primaryLanguageId,
       learningLanguageId: input.learningLanguageId,
+      ...(input.partOfSpeech !== undefined ? { partOfSpeech: input.partOfSpeech } : {}),
     },
     select: translationSelect,
   });
@@ -118,6 +136,8 @@ export async function replaceTranslationTags(translationId: number, tagIds: numb
 
 type TranslationRow = {
   id: number;
+  relationType: VocabPairRelationType;
+  partOfSpeech: string | null;
   primaryLanguageId: number | null;
   learningLanguageId: number | null;
   wordA: { text: string; languageId: number; language: { name: string } };
@@ -167,6 +187,7 @@ export function mapTranslationRow(row: TranslationRow, viewPrimaryLanguageId?: n
 
   return {
     id: row.id,
+    relationType: row.relationType,
     primaryWord: primaryWord.text,
     primaryLanguage: primaryWord.language.name,
     learningWord: learningWord.text,
@@ -175,6 +196,7 @@ export function mapTranslationRow(row: TranslationRow, viewPrimaryLanguageId?: n
     learningLanguageId:
       viewOtherLanguageId ?? row.learningLanguageId ?? learningWord.languageId,
     userPairCount: row._count.dictionaryEntries,
+    partOfSpeech: row.partOfSpeech,
     tagIds: row.tags.map((entry) => entry.tag.id),
     tagNames: row.tags.map((entry) => entry.tag.name),
   };

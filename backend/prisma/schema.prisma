@@ -40,17 +40,23 @@ model User {
 }
 
 model TelegramLinkCode {
-  id        String    @id @default(uuid()) @db.Uuid
-  userId    Int       @map("user_id")
-  code      String    @unique
-  expiresAt DateTime  @map("expires_at")
-  usedAt    DateTime? @map("used_at")
-  createdAt DateTime  @default(now()) @map("created_at")
+  id        String                 @id @default(uuid()) @db.Uuid
+  userId    Int                    @map("user_id")
+  code      String                 @unique
+  initiator TelegramLinkInitiator  @default(web) @map("initiator")
+  expiresAt DateTime               @map("expires_at")
+  usedAt    DateTime?              @map("used_at")
+  createdAt DateTime               @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt(sort: Desc)])
   @@map("telegram_link_codes")
+}
+
+enum TelegramLinkInitiator {
+  web
+  telegram
 }
 
 enum PaymentTransactionType {
@@ -191,39 +197,66 @@ model Language {
   id            Int    @id @default(autoincrement()) @map("id")
   name          String @unique @map("name")
 
-  vocabWords    VocabWord[] @relation("LanguageVocabWords")
-  primaryUsers  User[]      @relation("PrimaryLanguage")
-  learningUsers User[]      @relation("LearningLanguage")
+  vocabWords    VocabWord[]   @relation("LanguageVocabWords")
+  lexicalNests  LexicalNest[]
+  primaryUsers  User[]        @relation("PrimaryLanguage")
+  learningUsers User[]        @relation("LearningLanguage")
 
   @@map("languages")
+}
+
+model LexicalNest {
+  id         Int      @id @default(autoincrement()) @map("id")
+  languageId Int      @map("language_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  language Language    @relation(fields: [languageId], references: [id])
+  members  VocabWord[]
+
+  @@index([languageId])
+  @@map("lexical_nests")
 }
 
 model VocabWord {
   id         Int    @id @default(autoincrement()) @map("id")
   languageId Int    @map("language_id")
+  nestId     Int    @map("nest_id")
   text       String @map("text")
 
-  language   Language    @relation("LanguageVocabWords", fields: [languageId], references: [id])
+  language     Language    @relation("LanguageVocabWords", fields: [languageId], references: [id])
+  nest         LexicalNest @relation(fields: [nestId], references: [id])
   pairsAsWordA VocabPair[] @relation("WordA")
   pairsAsWordB VocabPair[] @relation("WordB")
 
   @@unique([languageId, text])
+  @@index([nestId])
   @@map("vocab_words")
 }
 
+enum VocabPairRelationType {
+  translation
+  synonym
+  antonym
+  cognate
+  inflection
+}
+
 model VocabPair {
-  id                 Int  @id @default(autoincrement()) @map("id")
-  wordAId            Int  @map("word_a_id")
-  wordBId            Int  @map("word_b_id")
-  primaryLanguageId  Int? @map("primary_language_id")
-  learningLanguageId Int? @map("learning_language_id")
+  id                 Int                   @id @default(autoincrement()) @map("id")
+  wordAId            Int                   @map("word_a_id")
+  wordBId            Int                   @map("word_b_id")
+  relationType       VocabPairRelationType @default(translation) @map("relation_type")
+  primaryLanguageId  Int?                  @map("primary_language_id")
+  learningLanguageId Int?                  @map("learning_language_id")
+  partOfSpeech       String?               @map("part_of_speech")
+  example            String?               @db.Text
 
   wordA            VocabWord         @relation("WordA", fields: [wordAId], references: [id])
   wordB            VocabWord         @relation("WordB", fields: [wordBId], references: [id])
   dictionaryEntries DictionaryEntry[]
   tags             VocabPairTag[]
 
-  @@unique([wordAId, wordBId])
+  @@unique([wordAId, wordBId, relationType])
   @@map("vocab_pairs")
 }
 
@@ -269,11 +302,15 @@ model Dictionary {
 }
 
 model DictionaryEntry {
-  dictionaryId  Int      @map("dictionary_id")
-  vocabPairId   Int      @map("vocab_pair_id")
-  pimsleurLevel Int      @default(0) @map("pimsleur_level")
-  nextReviewMs  BigInt   @map("next_review_ms") @db.BigInt
-  createdAt     DateTime @default(now()) @map("created_at")
+  dictionaryId              Int      @map("dictionary_id")
+  vocabPairId               Int      @map("vocab_pair_id")
+  pimsleurLevel             Int      @default(0) @map("pimsleur_level")
+  nextReviewMs              BigInt   @map("next_review_ms") @db.BigInt
+  pimsleurLevelReverse      Int      @default(0) @map("pimsleur_level_reverse")
+  nextReviewMsReverse       BigInt   @map("next_review_ms_reverse") @db.BigInt
+  alternatePrimaryAnswers   String[] @default([]) @map("alternate_primary_answers")
+  alternateLearningAnswers  String[] @default([]) @map("alternate_learning_answers")
+  createdAt                 DateTime @default(now()) @map("created_at")
 
   dictionary Dictionary @relation(fields: [dictionaryId], references: [id], onDelete: Cascade)
   vocabPair  VocabPair  @relation(fields: [vocabPairId], references: [id], onDelete: Cascade)

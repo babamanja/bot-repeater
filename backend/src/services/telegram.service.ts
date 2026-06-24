@@ -1,21 +1,10 @@
-import { randomBytes } from "node:crypto";
 import { getPrisma } from "../db/prisma.js";
 import * as dictionaryRepository from "../db/dictionaryRepository.js";
 import * as subscriptionRepository from "../db/subscriptionRepository.js";
-
-const LINK_CODE_TTL_MS = 15 * 60 * 1000;
-
-function generateLinkCode(): string {
-  return randomBytes(5).toString("hex");
-}
+import { createTelegramLinkCode as createLinkCodeRecord } from "./telegramLink.service.js";
 
 export async function createTelegramLinkCode(userId: number): Promise<{ code: string; expiresAt: string }> {
-  const code = generateLinkCode();
-  const expiresAt = new Date(Date.now() + LINK_CODE_TTL_MS);
-  await getPrisma().telegramLinkCode.create({
-    data: { userId, code, expiresAt },
-  });
-  return { code, expiresAt: expiresAt.toISOString() };
+  return createLinkCodeRecord(userId, "web");
 }
 
 export type TelegramLinkStatus = {

@@ -11,7 +11,7 @@
     "dev:backend": "npm run dev --prefix backend",
     "dev:frontend": "npm run dev --prefix frontend",
     "dev:bot": "npm run dev --prefix bot",
-    "dev:all": "npm run dev:backend & npm run dev:frontend & npm run dev:bot",
+    "dev:all": "concurrently -n backend,frontend,bot -c blue,green,magenta \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:bot\"",
     "db:migrate": "npm run db:migrate --prefix backend",
     "db:generate": "npm run db:generate --prefix backend",
     "build:shared": "npm run build -w @vocab-bot/shared",
@@ -28,6 +28,7 @@
   },
   "devDependencies": {
     "@vercel/node": "^5.8.17",
+    "concurrently": "^9.2.1",
     "prettier": "^3.3.3"
   }
 }

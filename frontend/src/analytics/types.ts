@@ -134,6 +134,7 @@ type SubscriptionOpenedProps = AnalyticsBaseProps & AnalyticsChannelDimensions;
 type BillingHistoryOpenedProps = AnalyticsBaseProps & AnalyticsChannelDimensions;
 type UserDashboardOpenedProps = AnalyticsBaseProps & AnalyticsChannelDimensions;
 type WordsPageOpenedProps = AnalyticsBaseProps & AnalyticsChannelDimensions;
+type ReviewPageOpenedProps = AnalyticsBaseProps & AnalyticsChannelDimensions;
 type DictionariesPageOpenedProps = AnalyticsBaseProps & AnalyticsChannelDimensions;
 
 type ProfileUpdatedProps = AnalyticsBaseProps &
@@ -230,6 +231,7 @@ export type AnalyticsEventMap = {
   user_dashboard_opened: UserDashboardOpenedProps;
   billing_history_opened: BillingHistoryOpenedProps;
   words_page_opened: WordsPageOpenedProps;
+  review_page_opened: ReviewPageOpenedProps;
   dictionaries_page_opened: DictionariesPageOpenedProps;
   profile_updated: ProfileUpdatedProps;
   profile_update_failed: ProfileUpdateFailedProps;

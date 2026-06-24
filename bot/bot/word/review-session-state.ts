@@ -7,6 +7,9 @@ type ReviewSession = {
   queue: DueVocabPair[];
   index: number;
   nonce: string;
+  pendingClose?: {
+    userAnswer: string;
+  };
 };
 
 const sessions = new Map<number, ReviewSession>();
@@ -44,10 +47,39 @@ export function validateCurrentCard(
   return card;
 }
 
+export function getCurrentReviewCard(
+  telegramUserId: number,
+): { word: DueVocabPair; nonce: string } | null {
+  const s = sessions.get(telegramUserId);
+  if (!s) return null;
+  const card = s.queue[s.index];
+  if (!card) return null;
+  return { word: card, nonce: s.nonce };
+}
+
+export function setPendingCloseReview(telegramUserId: number, userAnswer: string): boolean {
+  const s = sessions.get(telegramUserId);
+  if (!s) return false;
+  s.pendingClose = { userAnswer };
+  s.nonce = makeNonce();
+  return true;
+}
+
+export function clearPendingCloseReview(telegramUserId: number): void {
+  const s = sessions.get(telegramUserId);
+  if (!s) return;
+  delete s.pendingClose;
+}
+
+export function isPendingCloseReview(telegramUserId: number): boolean {
+  return sessions.get(telegramUserId)?.pendingClose != null;
+}
+
 /** After a correct answer on the current card: move to next or clear session. */
 export function advanceAfterCardAnswer(telegramUserId: number): { word: DueVocabPair; nonce: string } | null {
   const s = sessions.get(telegramUserId);
   if (!s) return null;
+  delete s.pendingClose;
   s.index += 1;
   if (s.index >= s.queue.length) {
     sessions.delete(telegramUserId);

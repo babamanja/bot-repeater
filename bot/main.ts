@@ -3,10 +3,11 @@ import { registerLanguageCommands } from './bot/language/commands';
 import { registerProcessingCommands } from './bot/processing/commands';
 import { registerSubscriptionCommands } from './bot/subscription/commands';
 import { createPrismaClient } from './domain/prisma-client';
-import { ensureUserByTelegram, getUserLanguages, linkTelegramByCode } from './domain/telegram-user';
+import { ensureUserByTelegram, getUserLanguages } from './domain/telegram-user';
 import { getAllLanguages, initVocabSchema } from './domain/vocab';
 import { botT } from './i18n';
 import { mainReplyKeyboard } from './bot/user/telegram-ui';
+import { handleTelegramLinkStart } from './bot/processing/telegram-link-handler';
 import config from './config';
 
 async function bootstrap() {
@@ -20,20 +21,8 @@ async function bootstrap() {
     const startPayload = ctx.startPayload?.trim();
     if (startPayload?.startsWith('link_')) {
       const code = startPayload.slice('link_'.length);
-      const linked = await linkTelegramByCode(
-        prisma,
-        {
-          id: ctx.from.id,
-          username: ctx.from.username,
-          firstName: ctx.from.first_name,
-          lastName: ctx.from.last_name,
-        },
-        code,
-      );
-      if (!linked.ok) {
-        return ctx.reply(`Could not link Telegram: ${linked.error}`);
-      }
-      return ctx.reply('Telegram account linked successfully.');
+      await handleTelegramLinkStart(ctx, code);
+      return;
     }
 
     await ensureUserByTelegram(prisma, {
@@ -78,7 +67,13 @@ async function bootstrap() {
   registerProcessingCommands(bot, prisma);
   registerSubscriptionCommands(bot, prisma);
 
+  bot.catch((error, ctx) => {
+    console.error('[bot] handler error', error);
+    void ctx.reply('Something went wrong. Please try again later.').catch(() => undefined);
+  });
+
   await bot.launch();
+  console.log('[bot] polling started');
 }
 
 bootstrap().catch((error) => {

@@ -13,9 +13,26 @@ const PIMSLEUR_DELAYS_MS: readonly number[] = [
   2 * 365.25 * 24 * 60 * 60 * 1000,
 ];
 
+export const PIMSLEUR_LEVEL_MAX = 10;
+
 export function initialSchedule(nowMs: number): { pimsleurLevel: number; nextReviewMs: bigint } {
   return {
     pimsleurLevel: 0,
     nextReviewMs: BigInt(nowMs + PIMSLEUR_DELAYS_MS[0]),
   };
+}
+
+export function scheduleAfterCorrect(
+  currentLevel: number,
+  nowMs: number,
+): { pimsleurLevel: number; nextReviewMs: bigint } {
+  const nextLevel = Math.min(currentLevel + 1, PIMSLEUR_LEVEL_MAX);
+  return {
+    pimsleurLevel: nextLevel,
+    nextReviewMs: BigInt(nowMs + PIMSLEUR_DELAYS_MS[nextLevel]),
+  };
+}
+
+export function scheduleAfterWrong(nowMs: number): { pimsleurLevel: number; nextReviewMs: bigint } {
+  return initialSchedule(nowMs);
 }
