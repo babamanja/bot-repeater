@@ -8,7 +8,9 @@ import {
   BASELINE_MIGRATION,
   BASELINE_DRIFT_REPAIR_SQL,
   extractFailedMigrationName,
+  hasFailedMigrationError,
   isP3005Error,
+  isP3009Error,
   isP3018Error,
 } from "../scripts/prismaMigrate.mjs";
 
@@ -42,9 +44,28 @@ test("isP3018Error detects failed migration recovery error", () => {
   assert.equal(isP3018Error("migration applied successfully"), false);
 });
 
+test("isP3009Error detects blocked deploy with failed migration history", () => {
+  assert.equal(
+    isP3009Error("Error: P3009\n\nmigrate found failed migrations in the target database"),
+    true,
+  );
+  assert.equal(isP3009Error("found failed migrations in the target database"), true);
+  assert.equal(isP3009Error("migration applied successfully"), false);
+});
+
+test("hasFailedMigrationError covers P3009 and P3018", () => {
+  assert.equal(hasFailedMigrationError("Error: P3009"), true);
+  assert.equal(hasFailedMigrationError("Error: P3018"), true);
+  assert.equal(hasFailedMigrationError("ok"), false);
+});
+
 test("extractFailedMigrationName parses Prisma migrate output", () => {
-  const output = "Migration name: 20260622170000_user_dictionaries\nDatabase error code: 42703";
-  assert.equal(extractFailedMigrationName(output), "20260622170000_user_dictionaries");
+  const p3018 = "Migration name: 20260622170000_user_dictionaries\nDatabase error code: 42703";
+  assert.equal(extractFailedMigrationName(p3018), "20260622170000_user_dictionaries");
+
+  const p3009 =
+    "Error: P3009\nThe `20260622170000_user_dictionaries` migration started at 2026-06-24 failed";
+  assert.equal(extractFailedMigrationName(p3009), "20260622170000_user_dictionaries");
 });
 
 test("BASELINE_DRIFT_REPAIR_SQL adds users.created_at for legacy DBs", () => {
@@ -58,7 +79,8 @@ test("deploy-database.mjs baselines P3005 with migrate resolve --applied", () =>
   );
   assert.match(source, /isP3005Error/);
   assert.match(source, /migrate", "resolve", "--applied", BASELINE_MIGRATION/);
-  assert.match(source, /isP3018Error/);
+  assert.match(source, /clearFailedMigrationsFromDatabase/);
+  assert.match(source, /recoverFailedMigration/);
   assert.match(source, /repairBaselineDrift/);
   assert.doesNotMatch(source, /--rolled-back.*BASELINE_MIGRATION/);
 });

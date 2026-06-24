@@ -11,8 +11,8 @@ import {
   BASELINE_DRIFT_REPAIR_SQL,
   BASELINE_MIGRATION,
   extractFailedMigrationName,
+  hasFailedMigrationError,
   isP3005Error,
-  isP3018Error,
   runPrisma,
 } from "./prismaMigrate.mjs";
 
@@ -134,12 +134,72 @@ async function repairBaselineDrift() {
   }
 }
 
+async function listFailedMigrations() {
+  const { PrismaClient } = await import("@prisma/client");
+  const prisma = new PrismaClient();
+  try {
+    const rows = await prisma.$queryRaw`
+      SELECT migration_name
+      FROM "_prisma_migrations"
+      WHERE finished_at IS NULL
+        AND rolled_back_at IS NULL
+        AND started_at IS NOT NULL
+      ORDER BY started_at
+    `;
+    return rows.map((row) => String(row.migration_name));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("_prisma_migrations") && message.includes("does not exist")) {
+      return [];
+    }
+    throw error;
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+async function clearFailedMigrationsFromDatabase() {
+  const failed = await listFailedMigrations();
+  if (failed.length === 0) {
+    return;
+  }
+
+  console.warn(
+    `[db:deploy] Found failed migration record(s) in _prisma_migrations: ${failed.join(", ")}`,
+  );
+  for (const migrationName of failed) {
+    const resolveResult = resolveFailedMigration(migrationName);
+    if (resolveResult.status !== 0) {
+      process.exit(resolveResult.status);
+    }
+  }
+  await repairBaselineDrift();
+}
+
 function resolveFailedMigration(migrationName) {
   console.warn(
-    `[db:deploy] Migration ${migrationName} failed previously (P3018). ` +
+    `[db:deploy] Migration ${migrationName} is marked failed. ` +
       "Marking as rolled back and retrying…",
   );
   return runPrisma(["migrate", "resolve", "--rolled-back", migrationName]);
+}
+
+async function recoverFailedMigration(result) {
+  if (result.status === 0 || !hasFailedMigrationError(result.output)) {
+    return result;
+  }
+
+  const migrationName = extractFailedMigrationName(result.output);
+  if (!migrationName) {
+    return result;
+  }
+
+  const resolveResult = resolveFailedMigration(migrationName);
+  if (resolveResult.status !== 0) {
+    process.exit(resolveResult.status);
+  }
+  await repairBaselineDrift();
+  return runMigrateDeploy(true);
 }
 
 function exitMigrateFailure(result) {
@@ -207,6 +267,8 @@ async function main() {
   process.env.DATABASE_URL = databaseUrl;
   logDatabaseTarget(databaseUrl);
 
+  await clearFailedMigrationsFromDatabase();
+
   console.log("[db:deploy] Running prisma migrate deploy…");
   let result = runMigrateDeploy(true);
 
@@ -219,16 +281,7 @@ async function main() {
     result = runMigrateDeploy(true);
   }
 
-  if (result.status !== 0 && isP3018Error(result.output)) {
-    const migrationName = extractFailedMigrationName(result.output);
-    if (migrationName) {
-      const resolveResult = resolveFailedMigration(migrationName);
-      if (resolveResult.status !== 0) {
-        process.exit(resolveResult.status);
-      }
-      result = runMigrateDeploy(true);
-    }
-  }
+  result = await recoverFailedMigration(result);
 
   if (result.status !== 0) {
     exitMigrateFailure(result);
