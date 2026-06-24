@@ -46,10 +46,14 @@ test("createApp boots without loading loadEnv module", async () => {
   assert.equal(typeof app, "function");
 });
 
-test("api handler source imports serverless entry from backend/src", () => {
+test("api handler dynamically imports serverless entry from backend/src", () => {
   const apiIndexPath = resolve(backendRoot, "../api/index.ts");
   const source = readUtf8(apiIndexPath);
-  assert.match(source, /from ["']\.\.\/backend\/src\/serverless\.js["']/);
+  assert.match(source, /import\(["']\.\.\/backend\/src\/serverless\.js["']\)/);
+  assert.doesNotMatch(
+    source,
+    /^\s*import\s+\{[^}]+\}\s+from\s+["']\.\.\/backend\/src\/serverless\.js["']/m,
+  );
   assert.doesNotMatch(source, /backend\/dist\//);
 });
 
